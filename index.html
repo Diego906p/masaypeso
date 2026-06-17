@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>🎒 Juego de Masa — Pesito</title>
+<style>
+/* ═══ RESET & BASE ═══ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#F4F2FF}
+body{font-family:'Segoe UI',system-ui,sans-serif;color:#1E1B40;overflow-x:hidden}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes wiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(-6deg)}75%{transform:rotate(6deg)}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-7px)}75%{transform:translateX(7px)}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes confetti-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100px) rotate(360deg);opacity:0}}
+@keyframes stamp-in{0%{transform:scale(2) rotate(-15deg);opacity:0}60%{transform:scale(.9) rotate(3deg);opacity:1}100%{transform:scale(1) rotate(-2deg);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+
+/* ═══ LAYOUT ═══ */
+.app-wrap{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:12px 10px 24px}
+.card{width:100%;max-width:500px;background:#fff;border-radius:22px;box-shadow:0 4px 28px rgba(80,70,180,.13);overflow:hidden;animation:fadeIn .35s ease}
+
+/* ═══ LOGIN SCREEN ═══ */
+.login-card{max-width:360px;padding:32px 24px;text-align:center}
+.login-logo{font-size:48px;margin-bottom:4px;display:block;animation:float 2.5s ease-in-out infinite}
+.login-title{font-size:20px;font-weight:700;color:#3C3489;margin-bottom:4px}
+.login-sub{font-size:13px;color:#7B76B0;margin-bottom:22px}
+.login-field{width:100%;padding:11px 14px;border:2px solid #CECBF6;border-radius:12px;font-size:15px;color:#1E1B40;outline:none;transition:border .2s;margin-bottom:10px;background:#F9F8FF}
+.login-field:focus{border-color:#7F77DD}
+.login-btn{width:100%;padding:13px;border-radius:13px;font-size:16px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#7F77DD,#534AB7);color:#fff;border:none;transition:opacity .15s;margin-top:4px}
+.login-btn:hover{opacity:.88}
+.login-error{font-size:13px;color:#D85A30;background:#FFF0EB;border-radius:9px;padding:8px 12px;margin-top:8px;display:none;animation:pop .25s}
+.login-error.show{display:block}
+
+/* ═══ TOP NAV ═══ */
+.top-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 10px;background:linear-gradient(135deg,#7F77DD,#534AB7);color:#fff}
+.nav-title{font-size:14px;font-weight:700;letter-spacing:.3px}
+.nav-user{font-size:12px;opacity:.85;background:rgba(255,255,255,.18);padding:3px 10px;border-radius:20px}
+.nav-logout{font-size:12px;cursor:pointer;padding:4px 9px;border-radius:20px;border:1.5px solid rgba(255,255,255,.4);background:transparent;color:#fff;transition:background .15s}
+.nav-logout:hover{background:rgba(255,255,255,.15)}
+
+/* ═══ HUD ═══ */
+.hud{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#EEEDFE;border-bottom:2px solid #CECBF6}
+.hud-coins{display:flex;align-items:center;gap:5px;font-size:14px;font-weight:600;color:#3C3489}
+.coin{width:20px;height:20px;background:#EF9F27;border-radius:50%;border:2px solid #BA7517;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#633806;font-weight:600}
+.hud-lives{display:flex;gap:3px}
+.heart{font-size:16px}
+.hud-level{font-size:11px;font-weight:600;color:#534AB7;background:#CECBF6;padding:3px 10px;border-radius:20px}
+.hud-progress{font-size:11px;color:#7B76B0;font-weight:500}
+
+/* ═══ ROBOT ═══ */
+.robot-area{display:flex;align-items:flex-end;gap:12px;padding:12px 14px 0}
+.robot-svg{flex-shrink:0;animation:float 2.5s ease-in-out infinite}
+.speech-bubble{background:#fff;border:2px solid #CECBF6;border-radius:14px;padding:9px 12px;flex:1;font-size:13px;color:#3C3489;line-height:1.5;position:relative}
+.speech-bubble::before{content:'';position:absolute;left:-10px;top:14px;width:0;height:0;border-top:8px solid transparent;border-bottom:8px solid transparent;border-right:10px solid #CECBF6}
+.speech-bubble::after{content:'';position:absolute;left:-7px;top:15px;width:0;height:0;border-top:7px solid transparent;border-bottom:7px solid transparent;border-right:8px solid #fff}
+
+/* ═══ QUESTION AREA ═══ */
+.q-area{padding:12px 14px 16px}
+.level-banner{background:#E1F5EE;border:1.5px solid #1D9E75;border-radius:11px;padding:7px 12px;text-align:center;font-size:12px;font-weight:600;color:#085041;margin-bottom:10px;animation:pop .3s}
+
+.problem-box{background:#F7F6F0;border-radius:13px;padding:12px 14px;margin-bottom:10px;border:1.5px solid #D3D1C7}
+.problem-label{font-size:10px;font-weight:600;color:#888780;letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px}
+.problem-text{font-size:14px;color:#2C2C2A;line-height:1.6}
+.problem-text .hl{background:#FAEEDA;color:#633806;border-radius:5px;padding:1px 5px;font-weight:600}
+.problem-text .hl-b{background:#E6F1FB;color:#0C447C;border-radius:5px;padding:1px 5px;font-weight:600}
+
+.scale-container{display:flex;justify-content:center;margin:6px 0}
+.bar-section{margin:4px 0 10px}
+.bar-label-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.bar-name{font-size:11px;color:#5F5E5A;width:78px;flex-shrink:0;font-weight:500}
+.bar-track{flex:1;background:#E1F5EE;border-radius:20px;height:24px;overflow:hidden;border:1.5px solid #9FE1CB}
+.bar-fill{height:100%;border-radius:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;transition:width .6s cubic-bezier(.34,1.56,.64,1)}
+.bar-fill.teal{background:#1D9E75;color:#E1F5EE}
+.bar-fill.purple{background:#7F77DD;color:#EEEDFE}
+.bar-fill.amber{background:#EF9F27;color:#633806}
+.bar-fill.coral{background:#D85A30;color:#FAECE7}
+.bar-fill.dashed{background:repeating-linear-gradient(90deg,#D3D1C7 0,#D3D1C7 6px,transparent 6px,transparent 12px);border:1.5px dashed #888780}
+.bar-q{font-size:15px;font-weight:700;color:#5F5E5A}
+
+.hint-row{display:flex;justify-content:flex-end;margin-bottom:6px}
+.hint-toggle{font-size:11px;color:#534AB7;background:#EEEDFE;border:1px solid #AFA9EC;border-radius:20px;padding:4px 10px;cursor:pointer;transition:background .15s}
+.hint-toggle:hover{background:#CECBF6}
+.hint-box{background:#FAEEDA;border:1.5px solid #FAC775;border-radius:9px;padding:8px 12px;font-size:12px;color:#633806;margin-bottom:8px;display:none;animation:pop .2s;line-height:1.5}
+.hint-box.show{display:block}
+
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.opt-btn{padding:13px 8px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:2.5px solid #D3D1C7;background:#fff;color:#2C2C2A;transition:all .15s;text-align:center;line-height:1.3}
+.opt-btn:hover:not(:disabled){border-color:#7F77DD;background:#EEEDFE;color:#3C3489;transform:scale(1.03)}
+.opt-btn:active:not(:disabled){transform:scale(.97)}
+.opt-btn.correct{border-color:#1D9E75;background:#E1F5EE;color:#085041;animation:pop .3s}
+.opt-btn.wrong{border-color:#E24B4A;background:#FCEBEB;color:#501313;animation:shake .4s}
+.opt-btn:disabled{cursor:not-allowed}
+
+.feedback-bar{border-radius:10px;padding:9px 12px;font-size:13px;font-weight:500;margin:6px 0;display:none;line-height:1.4}
+.feedback-bar.show{display:flex;align-items:flex-start;gap:7px;animation:pop .3s}
+.feedback-bar.ok{background:#E1F5EE;color:#085041;border:1.5px solid #5DCAA5}
+.feedback-bar.bad{background:#FCEBEB;color:#501313;border:1.5px solid #F09595}
+
+.next-btn{width:100%;padding:12px;border-radius:13px;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#7F77DD,#534AB7);color:#fff;border:none;transition:all .15s;display:none;margin-top:6px}
+.next-btn.show{display:block;animation:pop .25s}
+.next-btn:hover{opacity:.88}
+.next-btn:active{transform:scale(.98)}
+
+/* ═══ END SCREEN ═══ */
+.end-screen{padding:20px 16px 24px;text-align:center;animation:fadeIn .4s}
+.confetti-wrap{position:relative;height:50px;overflow:visible;margin-bottom:4px}
+.confetti-piece{position:absolute;animation:confetti-fall 1.5s ease forwards}
+.trophy{font-size:52px;margin-bottom:6px;display:block;animation:bounce 1s ease-in-out infinite}
+.end-title{font-size:20px;font-weight:700;color:#3C3489;margin-bottom:4px}
+.end-sub{font-size:13px;color:#5F5E5A;margin-bottom:14px;line-height:1.5}
+.coins-earned{background:#FAEEDA;border:2px solid #FAC775;border-radius:13px;padding:10px 18px;display:inline-flex;align-items:center;gap:7px;font-size:15px;font-weight:600;color:#633806;margin-bottom:16px}
+
+/* STAMP */
+.stamp-wrap{margin:10px auto 20px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.stamp-img{width:110px;height:110px;object-fit:contain;animation:stamp-in .5s cubic-bezier(.34,1.56,.64,1) forwards;filter:drop-shadow(0 3px 10px rgba(0,0,0,.18))}
+.stamp-placeholder{width:110px;height:110px;border-radius:50%;border:4px dashed #CECBF6;display:flex;align-items:center;justify-content:center;font-size:40px;animation:stamp-in .5s cubic-bezier(.34,1.56,.64,1) forwards}
+.stamp-label{font-size:13px;font-weight:700;color:#534AB7;letter-spacing:.5px}
+.grade-badge{display:inline-block;font-size:22px;font-weight:800;padding:4px 18px;border-radius:30px;letter-spacing:1px;margin-bottom:2px}
+.grade-AD{background:#1D9E75;color:#fff}
+.grade-A{background:#7F77DD;color:#fff}
+.grade-B{background:#EF9F27;color:#fff}
+.grade-C{background:#D85A30;color:#fff}
+
+.restart-btn{padding:12px 28px;border-radius:13px;font-size:14px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#7F77DD,#534AB7);color:#fff;border:none;transition:opacity .15s;margin-top:4px}
+.restart-btn:hover{opacity:.88}
+
+/* ═══ ADMIN PANEL ═══ */
+.admin-wrap{padding:14px}
+.admin-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.admin-icon{font-size:26px}
+.admin-title{font-size:17px;font-weight:700;color:#3C3489}
+.admin-sub{font-size:12px;color:#7B76B0}
+
+.attempt-card{background:#F7F6F0;border-radius:14px;margin-bottom:12px;overflow:hidden;border:1.5px solid #E0DEDA;animation:fadeIn .3s}
+.attempt-header{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#EEEDFE;cursor:pointer;user-select:none}
+.attempt-num{font-size:13px;font-weight:700;color:#3C3489}
+.attempt-date{font-size:11px;color:#7B76B0}
+.attempt-grade{font-size:12px;font-weight:700;padding:2px 10px;border-radius:20px}
+.attempt-body{padding:12px 14px;display:none}
+.attempt-body.open{display:block;animation:fadeIn .2s}
+.attempt-score-row{display:flex;justify-content:space-between;font-size:12px;color:#5F5E5A;margin-bottom:8px}
+.q-row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid #E0DEDA;font-size:12px}
+.q-row:last-child{border-bottom:none}
+.q-num{font-size:10px;font-weight:700;color:#7B76B0;min-width:22px}
+.q-text{flex:1;color:#2C2C2A;line-height:1.4}
+.q-ans{font-weight:600;white-space:nowrap;font-size:11px}
+.q-ans.ok{color:#1D9E75}
+.q-ans.bad{color:#D85A30}
+.q-time{color:#7B76B0;font-size:10px;white-space:nowrap}
+
+.no-data{text-align:center;padding:28px;color:#7B76B0;font-size:13px}
+.clear-btn{font-size:12px;color:#D85A30;background:transparent;border:1.5px solid #F09595;border-radius:20px;padding:4px 10px;cursor:pointer;float:right}
+.clear-btn:hover{background:#FFF0EB}
+
+/* ═══ UTILS ═══ */
+.hidden{display:none!important}
+.lives-shake{animation:shake .4s}
+.mt8{margin-top:8px}
+.small-note{font-size:11px;color:#7B76B0;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="app-wrap" id="app">
+
+  <!-- ══ LOGIN ══ -->
+  <div class="card login-card" id="login-screen">
+    <span class="login-logo">🤖</span>
+    <div class="login-title">Juego de Masa</div>
+    <div class="login-sub">¡Inicia sesión para jugar con Pesito!</div>
+    <input class="login-field" id="login-user" type="text" placeholder="Usuario" autocomplete="off" autocapitalize="none">
+    <input class="login-field" id="login-pass" type="password" placeholder="Contraseña">
+    <button class="login-btn" onclick="doLogin()">Entrar →</button>
+    <div class="login-error" id="login-error">Usuario o contraseña incorrectos</div>
+  </div>
+
+  <!-- ══ LUANNA GAME ══ -->
+  <div class="card hidden" id="game-screen" style="padding:0">
+    <div class="top-nav">
+      <div class="nav-title">🤖 Pesito — Juego de Masa</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="nav-user">👧 Luanna</span>
+        <button class="nav-logout" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+
+    <div id="game-main">
+      <div class="hud">
+        <div class="hud-coins"><span class="coin">★</span><span id="coin-count">0</span> pts</div>
+        <div class="hud-level" id="level-label">Fase 1</div>
+        <div class="hud-lives" id="lives-display"></div>
+      </div>
+
+      <div class="robot-area">
+        <svg class="robot-svg" width="62" height="76" viewBox="0 0 72 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="16" y="10" width="40" height="34" rx="10" fill="#7F77DD" stroke="#534AB7" stroke-width="2"/>
+          <circle cx="28" cy="24" r="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5"/>
+          <circle cx="44" cy="24" r="6" fill="#E6F1FB" stroke="#185FA5" stroke-width="1.5"/>
+          <circle cx="28" cy="24" r="3" fill="#378ADD"/>
+          <circle cx="44" cy="24" r="3" fill="#378ADD"/>
+          <rect x="26" y="33" width="20" height="4" rx="2" fill="#5DCAA5"/>
+          <rect x="18" y="44" width="36" height="30" rx="8" fill="#AFA9EC" stroke="#7F77DD" stroke-width="2"/>
+          <rect x="26" y="50" width="20" height="16" rx="4" fill="#EEEDFE"/>
+          <rect x="4" y="46" width="12" height="22" rx="6" fill="#7F77DD" stroke="#534AB7" stroke-width="1.5"/>
+          <rect x="56" y="46" width="12" height="22" rx="6" fill="#7F77DD" stroke="#534AB7" stroke-width="1.5"/>
+          <rect x="22" y="74" width="12" height="14" rx="6" fill="#534AB7"/>
+          <rect x="38" y="74" width="12" height="14" rx="6" fill="#534AB7"/>
+          <rect x="10" y="6" width="8" height="8" rx="4" fill="#EF9F27" stroke="#BA7517" stroke-width="1.5"/>
+          <line x1="14" y1="10" x2="26" y2="14" stroke="#BA7517" stroke-width="1.5"/>
+        </svg>
+        <div class="speech-bubble" id="robot-speech">¡Hola Luanna! Soy Pesito. ¡Ayúdame a resolver estos retos de masa!</div>
+      </div>
+
+      <div class="q-area" id="question-area"></div>
+    </div>
+
+    <div class="end-screen hidden" id="end-view">
+      <div class="confetti-wrap" id="confetti-area"></div>
+      <span class="trophy" id="trophy-emoji">🏆</span>
+      <div class="end-title" id="end-title">¡Misión completada!</div>
+      <div class="end-sub" id="end-sub"></div>
+      <div class="stamp-wrap" id="stamp-wrap"></div>
+      <div class="coins-earned"><span class="coin">★</span><span id="coins-total">0</span> puntos ganados</div>
+      <button class="restart-btn" onclick="startGame()">Jugar otra vez</button>
+      <p class="small-note mt8">Papá puede ver tu historial desde su cuenta 👀</p>
+    </div>
+  </div>
+
+  <!-- ══ ADMIN PANEL ══ -->
+  <div class="card hidden" id="admin-screen" style="padding:0">
+    <div class="top-nav">
+      <div class="nav-title">📊 Panel de Papá</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="nav-user">👨‍👧 Papá</span>
+        <button class="nav-logout" onclick="doLogout()">Salir</button>
+      </div>
+    </div>
+    <div class="admin-wrap">
+      <div class="admin-header">
+        <span class="admin-icon">👧</span>
+        <div>
+          <div class="admin-title">Historial de Luanna</div>
+          <div class="admin-sub">Resultados clasificados por intento</div>
+        </div>
+        <button class="clear-btn" onclick="clearHistory()">Limpiar</button>
+      </div>
+      <div id="admin-history"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════
+   USERS & AUTH
+══════════════════════════════════════════════ */
+const USERS = {
+  'luanna': { pass: 'estrella', role: 'player' },
+  'papá':   { pass: 'papa2026', role: 'admin' },
+  'papa':   { pass: 'papa2026', role: 'admin' },  // alias sin tilde
+};
+
+let currentUser = null;
+
+function doLogin() {
+  const u = document.getElementById('login-user').value.trim().toLowerCase();
+  const p = document.getElementById('login-pass').value;
+  const err = document.getElementById('login-error');
+  if (USERS[u] && USERS[u].pass === p) {
+    currentUser = USERS[u].role;
+    err.classList.remove('show');
+    document.getElementById('login-screen').classList.add('hidden');
+    if (currentUser === 'admin') showAdmin();
+    else { startGame(); document.getElementById('game-screen').classList.remove('hidden'); }
+  } else {
+    err.classList.add('show');
+    document.getElementById('login-pass').value = '';
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('admin-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+  document.getElementById('login-error').classList.remove('show');
+}
+
+document.getElementById('login-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('login-pass').focus(); });
+
+/* ══════════════════════════════════════════════
+   GRADING SYSTEM — AD / A / B / C
+══════════════════════════════════════════════ */
+// INSTRUCCIÓN: Reemplaza las URLs de abajo con las imágenes reales de tu repositorio.
+// Título y URL de cada sello. Si no hay imagen, se usará emoji como fallback.
+const STAMPS = {
+  AD: { label: 'AD — Logro Destacado',  emoji: '🥇', color: '#1D9E75', url: '' },  // ← pega URL aquí
+  A:  { label: 'A — Logro Esperado',    emoji: '🏆', color: '#7F77DD', url: '' },
+  B:  { label: 'B — En Proceso',        emoji: '⭐', color: '#EF9F27', url: '' },
+  C:  { label: 'C — En Inicio',         emoji: '💪', color: '#D85A30', url: '' },
+};
+
+function getGrade(pct) {
+  if (pct >= 0.9) return 'AD';
+  if (pct >= 0.7) return 'A';
+  if (pct >= 0.5) return 'B';
+  return 'C';
+}
+
+/* ══════════════════════════════════════════════
+   ALL PROBLEMS — 10 PER PHASE
+══════════════════════════════════════════════ */
+const PHASES = [
+  { label: 'Fase 1 — Suma de masa', color: 'teal' },
+  { label: 'Fase 2 — Resta de masa', color: 'coral' },
+  { label: 'Fase 3 — Doble y Triple', color: 'purple' },
+];
+
+const ALL_PROBLEMS = [
+  // ─── FASE 1: SUMA (10) ───
+  {
+    phase: 0, coins: 10,
+    speech: '¡Tenemos manzanas y peras! ¿Cuánto pesan en total?',
+    text: 'Lola tiene <span class="hl">350 g de manzanas</span> y <span class="hl-b">420 g de peras</span>. ¿Cuánto pesan en total?',
+    hint: 'Suma los gramos: 350 + 420 = ?',
+    bars: [{name:'Manzanas',pct:45,cls:'teal',val:'350 g'},{name:'Peras',pct:55,cls:'amber',val:'420 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'350 g + 420 g', right:'?'},
+    opts: ['720 g','770 g','700 g','680 g'], ans: 1,
+    explain: '350 + 420 = 770 g. ¡Las frutas pesan 770 gramos!',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: 'Un libro y una mochila. ¿Cuánto suman?',
+    text: 'Un libro pesa <span class="hl">1 kg 200 g</span> y una mochila <span class="hl-b">950 g</span>. ¿Cuánto pesan juntos?',
+    hint: 'Convierte: 1 kg 200 g = 1200 g. Luego suma: 1200 + 950 = ?',
+    bars: [{name:'Libro',pct:56,cls:'teal',val:'1 kg 200 g'},{name:'Mochila',pct:44,cls:'purple',val:'950 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'1200 g + 950 g', right:'?'},
+    opts: ['2 kg 050 g','2 kg 150 g','1 kg 950 g','2 kg 250 g'], ans: 1,
+    explain: '1200 + 950 = 2150 g = 2 kg 150 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: 'Lola compró harina. Usó parte para un bizcocho. ¿Cuánto le queda?',
+    text: 'Lola compró <span class="hl">985 g de harina</span>. Usó <span class="hl-b">795 g</span> para un bizcocho. ¿Cuánta harina le queda?',
+    hint: 'Suma lo usado y lo que queda: 795 + ? = 985',
+    bars: [{name:'Total',pct:100,cls:'teal',val:'985 g'},{name:'Usó',pct:81,cls:'coral',val:'795 g'},{name:'Queda',pct:19,cls:'dashed',val:'?'}],
+    scale: {left:'985 g', right:'795 g + ?'},
+    opts: ['100 g','190 g','900 g','280 g'], ans: 1,
+    explain: '985 − 795 = 190 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: '¡Zanahorias y pan! ¿Cuánto pesan en total?',
+    text: 'Hay <span class="hl">1 kg 390 g de zanahorias</span> y <span class="hl-b">2 kg 275 g de pan</span>. ¿Cuál es la masa total?',
+    hint: 'Suma kg con kg y g con g: 1+2=3 kg, 390+275=665 g.',
+    bars: [{name:'Zanahorias',pct:40,cls:'amber',val:'1 kg 390 g'},{name:'Pan',pct:60,cls:'teal',val:'2 kg 275 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'1kg390g + 2kg275g', right:'?'},
+    opts: ['3 kg 665 g','3 kg 565 g','4 kg 665 g','3 kg 755 g'], ans: 0,
+    explain: '1 kg 390 g + 2 kg 275 g = 3 kg 665 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: 'El diccionario y el cuaderno. ¿Cuánto pesan los dos?',
+    text: 'Un diccionario pesa <span class="hl">1 kg 250 g</span> y un paquete de hojas pesa <span class="hl-b">2 kg 375 g</span>. ¿Cuánto pesan juntos?',
+    hint: 'Suma los kg y luego los gramos.',
+    bars: [{name:'Diccionario',pct:42,cls:'teal',val:'1 kg 250 g'},{name:'Hojas',pct:58,cls:'purple',val:'2 kg 375 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'1kg250g + 2kg375g', right:'?'},
+    opts: ['3 kg 525 g','3 kg 625 g','3 kg 125 g','4 kg 625 g'], ans: 1,
+    explain: '1 kg 250 g + 2 kg 375 g = 3 kg 625 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: '¡Dos bolsas de arroz! ¿Cuánto suman?',
+    text: 'Una bolsa de arroz pesa <span class="hl">4 kg 500 g</span> y otra pesa <span class="hl-b">3 kg 750 g</span>. ¿Cuánto pesan en total?',
+    hint: '4+3=7 kg, 500+750=1250 g = 1 kg 250 g. Suma ese kilogramo extra.',
+    bars: [{name:'Bolsa 1',pct:55,cls:'teal',val:'4 kg 500 g'},{name:'Bolsa 2',pct:45,cls:'amber',val:'3 kg 750 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'4kg500g + 3kg750g', right:'?'},
+    opts: ['7 kg 250 g','8 kg 250 g','8 kg 050 g','7 kg 750 g'], ans: 1,
+    explain: '4500 + 3750 = 8250 g = 8 kg 250 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: '¡Carne y verduras para la olla! ¿Cuánto es todo?',
+    text: 'Mamá compra <span class="hl">800 g de carne</span> y <span class="hl-b">600 g de verduras</span>. ¿Cuánto pesa su compra?',
+    hint: '800 + 600 = ? Suma directamente.',
+    bars: [{name:'Carne',pct:57,cls:'coral',val:'800 g'},{name:'Verduras',pct:43,cls:'teal',val:'600 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'800 g + 600 g', right:'?'},
+    opts: ['1 kg 300 g','1 kg 400 g','1 kg 200 g','1 kg 500 g'], ans: 1,
+    explain: '800 + 600 = 1400 g = 1 kg 400 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: 'Papá pesa dos melones. ¿Cuánto suman los dos?',
+    text: 'Un melón pesa <span class="hl">2 kg 100 g</span> y otro pesa <span class="hl-b">1 kg 850 g</span>. ¿Cuánto pesan en total?',
+    hint: '2100 + 1850 = ? Convierte todo a gramos primero.',
+    bars: [{name:'Melón 1',pct:53,cls:'teal',val:'2 kg 100 g'},{name:'Melón 2',pct:47,cls:'purple',val:'1 kg 850 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'2100g + 1850g', right:'?'},
+    opts: ['3 kg 850 g','3 kg 950 g','4 kg 050 g','3 kg 750 g'], ans: 1,
+    explain: '2100 + 1850 = 3950 g = 3 kg 950 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: '¡Un pavo enorme para la cena! ¿Cuánto pesa con la bandeja?',
+    text: 'Un pavo pesa <span class="hl">5 kg 300 g</span> y la bandeja pesa <span class="hl-b">1 kg 200 g</span>. ¿Cuánto pesan juntos?',
+    hint: 'Suma los kg y los gramos por separado.',
+    bars: [{name:'Pavo',pct:82,cls:'amber',val:'5 kg 300 g'},{name:'Bandeja',pct:18,cls:'teal',val:'1 kg 200 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'5300g + 1200g', right:'?'},
+    opts: ['6 kg 300 g','6 kg 500 g','6 kg 400 g','7 kg 100 g'], ans: 1,
+    explain: '5300 + 1200 = 6500 g = 6 kg 500 g.',
+  },
+  {
+    phase: 0, coins: 10,
+    speech: '¡Muchos paquetes para enviar! ¿Cuánto pesa todo?',
+    text: 'Un paquete pesa <span class="hl">3 kg 450 g</span> y otro <span class="hl-b">2 kg 680 g</span>. ¿Cuánto pesan los dos?',
+    hint: '3450 + 2680 = ? Recuerda agrupar los kg.',
+    bars: [{name:'Paquete 1',pct:56,cls:'teal',val:'3 kg 450 g'},{name:'Paquete 2',pct:44,cls:'coral',val:'2 kg 680 g'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'3450g + 2680g', right:'?'},
+    opts: ['6 kg 030 g','6 kg 130 g','6 kg 230 g','5 kg 130 g'], ans: 1,
+    explain: '3450 + 2680 = 6130 g = 6 kg 130 g.',
+  },
+
+  // ─── FASE 2: RESTA (10) ───
+  {
+    phase: 1, coins: 15,
+    speech: 'Una maleta llena y una vacía. ¿Cuánto pesa la ropa?',
+    text: 'Una maleta llena pesa <span class="hl">12 kg</span>. La maleta vacía pesa <span class="hl-b">5 kg</span>. ¿Cuánto pesa la ropa?',
+    hint: 'Maleta llena = maleta vacía + ropa. Resta 5 de 12.',
+    bars: [{name:'Llena',pct:100,cls:'teal',val:'12 kg'},{name:'Vacía',pct:42,cls:'coral',val:'5 kg'},{name:'Ropa',pct:58,cls:'dashed',val:'?'}],
+    scale: {left:'12 kg', right:'5 kg + ?'},
+    opts: ['6 kg','7 kg','17 kg','8 kg'], ans: 1,
+    explain: '12 − 5 = 7 kg. ¡La ropa pesa 7 kilogramos!',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Un frasco con canicas! Descubre cuánto pesan solo las canicas.',
+    text: 'Un frasco con canicas pesa <span class="hl">900 g</span>. El frasco vacío pesa <span class="hl-b">475 g</span>. ¿Cuánto pesan solo las canicas?',
+    hint: 'Canicas = total − frasco vacío.',
+    bars: [{name:'Total',pct:100,cls:'teal',val:'900 g'},{name:'Frasco',pct:53,cls:'coral',val:'475 g'},{name:'Canicas',pct:47,cls:'dashed',val:'?'}],
+    scale: {left:'900 g', right:'475 g + ?'},
+    opts: ['325 g','525 g','425 g','575 g'], ans: 2,
+    explain: '900 − 475 = 425 g. ¡Las canicas pesan 425 g!',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Chocolates! ¿Cuánto pesan los chocolates solos?',
+    text: 'Una caja de chocolates pesa <span class="hl">948 g</span>. La caja vacía pesa <span class="hl-b">159 g</span>. ¿Cuánto pesan los chocolates?',
+    hint: 'Chocolates = caja llena − caja vacía.',
+    bars: [{name:'Llena',pct:100,cls:'purple',val:'948 g'},{name:'Caja vacía',pct:17,cls:'coral',val:'159 g'},{name:'Chocolates',pct:83,cls:'dashed',val:'?'}],
+    scale: {left:'948 g', right:'159 g + ?'},
+    opts: ['779 g','889 g','789 g','689 g'], ans: 2,
+    explain: '948 − 159 = 789 g. ¡Los chocolates pesan 789 g!',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Papá fue al mercado! ¿Cuánta fruta le queda a Lola?',
+    text: 'Lola tenía <span class="hl">2 kg 500 g de frutas</span>. Regaló <span class="hl-b">1 kg 200 g</span> a su vecina. ¿Cuánto le queda?',
+    hint: 'Resta los kg y los gramos: 2−1=1 kg, 500−200=300 g.',
+    bars: [{name:'Tenía',pct:100,cls:'teal',val:'2 kg 500 g'},{name:'Regaló',pct:48,cls:'coral',val:'1 kg 200 g'},{name:'Queda',pct:52,cls:'dashed',val:'?'}],
+    scale: {left:'2kg500g', right:'1kg200g + ?'},
+    opts: ['1 kg 300 g','1 kg 200 g','3 kg 700 g','1 kg 400 g'], ans: 0,
+    explain: '2500 − 1200 = 1300 g = 1 kg 300 g.',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Azúcar en la cocina! ¿Cuánta queda después de hacer galletas?',
+    text: 'Había <span class="hl">3 kg de azúcar</span>. Se usaron <span class="hl-b">1 kg 750 g</span> para galletas. ¿Cuánto queda?',
+    hint: '3000 − 1750 = ? Convierte 3 kg a gramos.',
+    bars: [{name:'Había',pct:100,cls:'amber',val:'3 kg'},{name:'Usó',pct:58,cls:'coral',val:'1 kg 750 g'},{name:'Queda',pct:42,cls:'dashed',val:'?'}],
+    scale: {left:'3000 g', right:'1750 g + ?'},
+    opts: ['1 kg 150 g','1 kg 250 g','1 kg 350 g','2 kg 250 g'], ans: 1,
+    explain: '3000 − 1750 = 1250 g = 1 kg 250 g.',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Una bolsa de naranjas! ¿Cuántas naranjas quedan en la bolsa?',
+    text: 'Una bolsa de naranjas pesa <span class="hl">4 kg 800 g</span>. Carlos tomó naranjas que pesan <span class="hl-b">1 kg 350 g</span>. ¿Cuánto queda?',
+    hint: '4800 − 1350 = ?',
+    bars: [{name:'Bolsa',pct:100,cls:'teal',val:'4 kg 800 g'},{name:'Tomó',pct:28,cls:'coral',val:'1 kg 350 g'},{name:'Queda',pct:72,cls:'dashed',val:'?'}],
+    scale: {left:'4800 g', right:'1350 g + ?'},
+    opts: ['3 kg 450 g','3 kg 550 g','2 kg 450 g','3 kg 650 g'], ans: 0,
+    explain: '4800 − 1350 = 3450 g = 3 kg 450 g.',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Una pecera con agua! ¿Cuánto pesa solo el agua?',
+    text: 'Una pecera llena pesa <span class="hl">6 kg 200 g</span>. La pecera vacía pesa <span class="hl-b">2 kg 400 g</span>. ¿Cuánto pesa el agua?',
+    hint: 'Agua = pecera llena − pecera vacía.',
+    bars: [{name:'Llena',pct:100,cls:'teal',val:'6 kg 200 g'},{name:'Vacía',pct:39,cls:'coral',val:'2 kg 400 g'},{name:'Agua',pct:61,cls:'dashed',val:'?'}],
+    scale: {left:'6200 g', right:'2400 g + ?'},
+    opts: ['3 kg 800 g','3 kg 700 g','4 kg 200 g','3 kg 600 g'], ans: 0,
+    explain: '6200 − 2400 = 3800 g = 3 kg 800 g.',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Harina para el pan! ¿Cuánta harina queda?',
+    text: 'El saco tiene <span class="hl">10 kg de harina</span>. El panadero usó <span class="hl-b">6 kg 300 g</span>. ¿Cuánto queda?',
+    hint: '10000 − 6300 = ?',
+    bars: [{name:'Total',pct:100,cls:'amber',val:'10 kg'},{name:'Usó',pct:63,cls:'coral',val:'6 kg 300 g'},{name:'Queda',pct:37,cls:'dashed',val:'?'}],
+    scale: {left:'10000 g', right:'6300 g + ?'},
+    opts: ['3 kg 600 g','3 kg 700 g','4 kg 300 g','3 kg 800 g'], ans: 1,
+    explain: '10000 − 6300 = 3700 g = 3 kg 700 g.',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Papas en la olla! ¿Cuántas papas quedaron?',
+    text: 'Había <span class="hl">5 kg 500 g de papas</span>. Se cocinaron <span class="hl-b">2 kg 800 g</span>. ¿Cuántas papas quedan sin cocinar?',
+    hint: '5500 − 2800 = ?',
+    bars: [{name:'Había',pct:100,cls:'teal',val:'5 kg 500 g'},{name:'Cocinó',pct:51,cls:'coral',val:'2 kg 800 g'},{name:'Queda',pct:49,cls:'dashed',val:'?'}],
+    scale: {left:'5500 g', right:'2800 g + ?'},
+    opts: ['2 kg 600 g','2 kg 700 g','3 kg 700 g','2 kg 800 g'], ans: 1,
+    explain: '5500 − 2800 = 2700 g = 2 kg 700 g.',
+  },
+  {
+    phase: 1, coins: 15,
+    speech: '¡Arroz para toda la familia! ¿Cuánto arroz quedó?',
+    text: 'La olla tenía <span class="hl">8 kg de arroz</span>. Se sirvieron <span class="hl-b">3 kg 250 g</span>. ¿Cuánto arroz queda?',
+    hint: '8000 − 3250 = ?',
+    bars: [{name:'Total',pct:100,cls:'purple',val:'8 kg'},{name:'Sirvió',pct:41,cls:'coral',val:'3 kg 250 g'},{name:'Queda',pct:59,cls:'dashed',val:'?'}],
+    scale: {left:'8000 g', right:'3250 g + ?'},
+    opts: ['4 kg 650 g','4 kg 750 g','5 kg 250 g','4 kg 550 g'], ans: 1,
+    explain: '8000 − 3250 = 4750 g = 4 kg 750 g.',
+  },
+
+  // ─── FASE 3: DOBLE Y TRIPLE (10) ───
+  {
+    phase: 2, coins: 20,
+    speech: '¡El doble de azúcar! ¿Cuánta harina se necesita?',
+    text: 'Para cada dona se usan <span class="hl">37 g de azúcar</span> y el <span class="hl-b">doble de harina</span>. ¿Cuánta harina se necesita?',
+    hint: 'El doble significa ×2. Entonces: 37 × 2 = ?',
+    bars: [{name:'Azúcar',pct:37,cls:'amber',val:'37 g'},{name:'Harina',pct:74,cls:'dashed',val:'?'}],
+    scale: {left:'Harina = 2 × azúcar', right:'?'},
+    opts: ['47 g','64 g','74 g','37 g'], ans: 2,
+    explain: 'El doble de 37 g = 37 × 2 = 74 g.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡Rosa tiene 4 veces más fichas! ¿Cuántas tienen juntas?',
+    text: 'Lola tiene <span class="hl">36 fichas</span>. Rosa tiene <span class="hl-b">4 veces más fichas</span> que Lola. ¿Cuántas tienen entre las dos?',
+    hint: 'Rosa: 36 × 4 = 144. Juntas: 36 + 144 = ?',
+    bars: [{name:'Lola',pct:20,cls:'teal',val:'36'},{name:'Rosa',pct:80,cls:'purple',val:'36×4'},{name:'Juntas',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'36 + (36×4)', right:'?'},
+    opts: ['180','144','216','168'], ans: 0,
+    explain: 'Rosa: 36×4=144. Juntas: 36+144=180.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡El saco violeta tiene 800 g más! ¿Cuánto pesa?',
+    text: 'El saco verde pesa <span class="hl">2 kg 500 g</span>. El saco violeta tiene <span class="hl-b">800 g más</span>. ¿Cuánto pesa el saco violeta?',
+    hint: 'Violeta = verde + 800 g. 2500 + 800 = 3300 g.',
+    bars: [{name:'Verde',pct:60,cls:'teal',val:'2 kg 500 g'},{name:'Extra',pct:20,cls:'amber',val:'+800 g'},{name:'Violeta',pct:80,cls:'dashed',val:'?'}],
+    scale: {left:'2kg500g + 800g', right:'?'},
+    opts: ['2 kg 300 g','3 kg 300 g','3 kg 500 g','2 kg 800 g'], ans: 1,
+    explain: '2500 + 800 = 3300 g = 3 kg 300 g.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡El triple! Si Ana corre el triple que Bea...',
+    text: 'Bea carga <span class="hl">4 kg</span>. Ana carga el <span class="hl-b">triple</span> que Bea. ¿Cuánto carga Ana?',
+    hint: 'Triple = ×3. Entonces: 4 × 3 = ?',
+    bars: [{name:'Bea',pct:33,cls:'teal',val:'4 kg'},{name:'Ana',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'Ana = 3 × Bea', right:'?'},
+    opts: ['7 kg','8 kg','12 kg','16 kg'], ans: 2,
+    explain: '4 × 3 = 12 kg. ¡Ana carga 12 kg!',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡La caja grande pesa el doble! ¿Cuánto pesan juntas?',
+    text: 'Una caja pequeña pesa <span class="hl">2 kg 500 g</span>. La caja grande pesa el <span class="hl-b">doble</span>. ¿Cuánto pesan las dos juntas?',
+    hint: 'Grande = 2 × 2500 = 5000 g. Suma las dos: 2500 + 5000 = ?',
+    bars: [{name:'Pequeña',pct:33,cls:'purple',val:'2 kg 500 g'},{name:'Grande',pct:67,cls:'teal',val:'2×2500'},{name:'Juntas',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'2500 + 5000', right:'?'},
+    opts: ['5 kg','7 kg','7 kg 500 g','6 kg 500 g'], ans: 2,
+    explain: 'Grande = 5000 g. Juntas: 2500+5000=7500 g = 7 kg 500 g.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡Saquitos de arroz! El saco B pesa el triple del A.',
+    text: 'El saco A pesa <span class="hl">3 kg</span>. El saco B pesa el <span class="hl-b">triple</span> del saco A. ¿Cuánto pesan los dos juntos?',
+    hint: 'B = 3 × 3 = 9 kg. Juntos: 3 + 9 = ?',
+    bars: [{name:'Saco A',pct:25,cls:'amber',val:'3 kg'},{name:'Saco B',pct:75,cls:'teal',val:'3×3'},{name:'Juntos',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'3 + (3×3)', right:'?'},
+    opts: ['9 kg','12 kg','15 kg','6 kg'], ans: 1,
+    explain: 'B = 9 kg. Juntos: 3+9 = 12 kg.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡Cuentas de colores! ¿Cuántas cuentas hay en total?',
+    text: 'Rosa tiene <span class="hl">120 cuentas azules</span>. Tiene el <span class="hl-b">doble de cuentas rojas</span>. ¿Cuántas cuentas tiene en total?',
+    hint: 'Rojas = 120 × 2 = 240. Total = 120 + 240 = ?',
+    bars: [{name:'Azules',pct:33,cls:'teal',val:'120'},{name:'Rojas',pct:67,cls:'coral',val:'120×2'},{name:'Total',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'120 + 240', right:'?'},
+    opts: ['240','300','360','480'], ans: 2,
+    explain: '120 × 2 = 240 rojas. Total: 120+240=360.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡Pan de molde! ¿Cuánta mantequilla se necesita?',
+    text: 'Para una tostada se necesitan <span class="hl">15 g de mantequilla</span>. Para 3 tostadas se necesita el <span class="hl-b">triple</span>. ¿Cuántos gramos son?',
+    hint: 'Triple = 15 × 3 = ?',
+    bars: [{name:'1 tostada',pct:33,cls:'amber',val:'15 g'},{name:'3 tostadas',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'3 × 15 g', right:'?'},
+    opts: ['35 g','45 g','30 g','60 g'], ans: 1,
+    explain: '15 × 3 = 45 g para tres tostadas.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡Perros y gatitos! ¿Cuánto pesan todos los animales?',
+    text: 'Un gato pesa <span class="hl">4 kg</span>. Un perro pesa el <span class="hl-b">doble del gato</span> más <span class="hl-b">1 kg</span>. ¿Cuánto pesan juntos?',
+    hint: 'Perro = (4×2)+1 = 9 kg. Juntos = 4+9 = ?',
+    bars: [{name:'Gato',pct:31,cls:'teal',val:'4 kg'},{name:'Perro',pct:69,cls:'purple',val:'(4×2)+1'},{name:'Juntos',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'4 + 9', right:'?'},
+    opts: ['12 kg','13 kg','11 kg','14 kg'], ans: 1,
+    explain: 'Perro = 8+1=9 kg. Juntos: 4+9=13 kg.',
+  },
+  {
+    phase: 2, coins: 20,
+    speech: '¡Jugo de naranja! ¿Cuánto jugo prepara mamá en total?',
+    text: 'Con 1 kg de naranjas se obtienen <span class="hl">500 g de jugo</span>. Con el <span class="hl-b">triple de naranjas</span>, ¿cuántos gramos de jugo obtenemos?',
+    hint: 'Triple de naranjas → triple de jugo: 500 × 3 = ?',
+    bars: [{name:'1 kg naranjas',pct:33,cls:'amber',val:'500 g jugo'},{name:'3 kg naranjas',pct:100,cls:'dashed',val:'?'}],
+    scale: {left:'3 × 500 g', right:'?'},
+    opts: ['1 kg 200 g','1 kg 500 g','500 g','2 kg'], ans: 1,
+    explain: '500 × 3 = 1500 g = 1 kg 500 g de jugo.',
+  },
+];
+
+/* ══════════════════════════════════════════════
+   GAME STATE
+══════════════════════════════════════════════ */
+let qIndex=0, score=0, coins=0, lives=3, answered=false, hintOpen=false;
+let shuffled=[], attemptLog=[], qStartTime=0;
+const TOTAL_Q = ALL_PROBLEMS.length; // 30
+
+/* ══════════════════════════════════════════════
+   LOCAL STORAGE — HISTORY
+══════════════════════════════════════════════ */
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem('luanna_history') || '[]'); } catch(e){ return []; }
+}
+function saveHistory(h) {
+  try { localStorage.setItem('luanna_history', JSON.stringify(h)); } catch(e){}
+}
+function clearHistory() {
+  if (confirm('¿Borrar todo el historial de Luanna?')) {
+    localStorage.removeItem('luanna_history');
+    showAdmin();
+  }
+}
+
+/* ══════════════════════════════════════════════
+   SHUFFLE
+══════════════════════════════════════════════ */
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+/* ══════════════════════════════════════════════
+   GAME INIT
+══════════════════════════════════════════════ */
+function startGame() {
+  qIndex=0; score=0; coins=0; lives=3; answered=false; hintOpen=false;
+  attemptLog=[];
+  // Keep phase order but shuffle within each phase
+  const ph0=shuffle(ALL_PROBLEMS.filter(p=>p.phase===0)).slice(0,10);
+  const ph1=shuffle(ALL_PROBLEMS.filter(p=>p.phase===1)).slice(0,10);
+  const ph2=shuffle(ALL_PROBLEMS.filter(p=>p.phase===2)).slice(0,10);
+  shuffled=[...ph0,...ph1,...ph2];
+
+  document.getElementById('coin-count').textContent='0';
+  document.getElementById('end-view').classList.add('hidden');
+  document.getElementById('game-main').classList.remove('hidden');
+  document.getElementById('confetti-area').innerHTML='';
+  renderLives();
+  renderQuestion();
+}
+
+/* ══════════════════════════════════════════════
+   RENDER LIVES
+══════════════════════════════════════════════ */
+function renderLives(){
+  const d=document.getElementById('lives-display');
+  d.innerHTML='';
+  for(let i=0;i<3;i++){const s=document.createElement('span');s.className='heart';s.textContent=i<lives?'❤️':'🖤';d.appendChild(s);}
+}
+
+/* ══════════════════════════════════════════════
+   RENDER SCALE
+══════════════════════════════════════════════ */
+function renderScale(p){
+  return `<div class="scale-container">
+    <svg width="200" height="82" viewBox="0 0 220 90">
+      <line x1="110" y1="18" x2="110" y2="43" stroke="#534AB7" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="110" cy="16" r="6" fill="#7F77DD" stroke="#534AB7" stroke-width="1.5"/>
+      <line x1="38" y1="43" x2="182" y2="43" stroke="#534AB7" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="53" y1="43" x2="53" y2="56" stroke="#534AB7" stroke-width="2"/>
+      <line x1="167" y1="43" x2="167" y2="56" stroke="#534AB7" stroke-width="2"/>
+      <rect x="22" y="56" width="62" height="22" rx="7" fill="#9FE1CB" stroke="#1D9E75" stroke-width="1.5"/>
+      <text x="53" y="71" text-anchor="middle" font-size="10" font-weight="600" fill="#085041">${p.scale.left}</text>
+      <rect x="136" y="56" width="62" height="22" rx="7" fill="#CECBF6" stroke="#7F77DD" stroke-width="1.5"/>
+      <text x="167" y="71" text-anchor="middle" font-size="10" font-weight="600" fill="#3C3489">${p.scale.right}</text>
+    </svg>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════════
+   RENDER BARS
+══════════════════════════════════════════════ */
+function renderBars(p){
+  let html='<div class="bar-section">';
+  p.bars.forEach(b=>{
+    const isDash=b.cls==='dashed';
+    const inner=isDash?'<span class="bar-q">?</span>':`<span>${b.val}</span>`;
+    html+=`<div class="bar-label-row">
+      <span class="bar-name">${b.name}</span>
+      <div class="bar-track"><div class="${isDash?'bar-fill dashed':'bar-fill '+b.cls}" style="width:${b.pct}%">${inner}</div></div>
+    </div>`;
+  });
+  return html+'</div>';
+}
+
+/* ══════════════════════════════════════════════
+   RENDER QUESTION
+══════════════════════════════════════════════ */
+function renderQuestion(){
+  if(qIndex>=shuffled.length){showEnd();return;}
+  answered=false; hintOpen=false;
+  qStartTime=Date.now();
+  const p=shuffled[qIndex];
+  const ph=PHASES[p.phase];
+  document.getElementById('level-label').textContent=ph.label;
+  document.getElementById('robot-speech').textContent=p.speech;
+
+  let html=`<div class="level-banner">${ph.label} — gana ${p.coins} puntos · Pregunta ${qIndex+1}/${shuffled.length}</div>`;
+  html+=`<div class="problem-box"><div class="problem-label">Problema ${qIndex+1} de ${shuffled.length}</div><div class="problem-text">${p.text}</div></div>`;
+  html+=renderScale(p);
+  html+=renderBars(p);
+  html+=`<div class="hint-row"><button class="hint-toggle" onclick="toggleHint()">💡 Ver pista</button></div>`;
+  html+=`<div class="hint-box" id="hint-box">${p.hint}</div>`;
+  html+='<div class="options-grid" id="opts">';
+  p.opts.forEach((o,i)=>{ html+=`<button class="opt-btn" onclick="pick(${i})">${o}</button>`; });
+  html+='</div>';
+  html+=`<div class="feedback-bar" id="fb"></div>`;
+  html+=`<button class="next-btn" id="next-btn" onclick="advance()">Siguiente reto →</button>`;
+  document.getElementById('question-area').innerHTML=html;
+}
+
+function toggleHint(){
+  hintOpen=!hintOpen;
+  document.getElementById('hint-box').classList.toggle('show',hintOpen);
+}
+
+/* ══════════════════════════════════════════════
+   PICK ANSWER
+══════════════════════════════════════════════ */
+function pick(idx){
+  if(answered)return;
+  answered=true;
+  const p=shuffled[qIndex];
+  const btns=document.querySelectorAll('.opt-btn');
+  btns.forEach(b=>b.disabled=true);
+  const correct=idx===p.ans;
+  btns[idx].classList.add(correct?'correct':'wrong');
+  if(!correct)btns[p.ans].classList.add('correct');
+
+  const elapsed=Math.round((Date.now()-qStartTime)/1000);
+  attemptLog.push({
+    q: qIndex+1,
+    text: p.text.replace(/<[^>]+>/g,''),
+    chosen: p.opts[idx],
+    correct: p.opts[p.ans],
+    ok: correct,
+    phase: p.phase,
+    secs: elapsed,
+  });
+
+  const fb=document.getElementById('fb');
+  if(correct){
+    coins+=p.coins; score++;
+    document.getElementById('coin-count').textContent=coins;
+    fb.className='feedback-bar show ok';
+    fb.innerHTML='<span style="font-size:18px">🎉</span><span>'+p.explain+'</span>';
+    document.getElementById('robot-speech').textContent='¡Excelente! Lo lograste.';
+  } else {
+    lives--;
+    renderLives();
+    const ld=document.getElementById('lives-display');
+    ld.classList.add('lives-shake');
+    setTimeout(()=>ld.classList.remove('lives-shake'),400);
+    fb.className='feedback-bar show bad';
+    fb.innerHTML='<span style="font-size:18px">💪</span><span>¡Casi! '+p.explain+'</span>';
+    document.getElementById('robot-speech').textContent='No te rindas, ¡sigue intentando!';
+    if(lives<=0){ setTimeout(()=>showEnd(true),1800); return; }
+  }
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function advance(){ qIndex++; renderQuestion(); }
+
+/* ══════════════════════════════════════════════
+   SHOW END
+══════════════════════════════════════════════ */
+function showEnd(outOfLives=false){
+  document.getElementById('game-main').classList.add('hidden');
+  const ev=document.getElementById('end-view');
+  ev.classList.remove('hidden');
+  const pct=score/shuffled.length;
+  const grade=getGrade(pct);
+
+  let trophy='🏆',title='',sub='';
+  if(outOfLives){
+    trophy='😢';title='¡Se acabaron las vidas!';
+    sub=`Respondiste bien ${score} de ${shuffled.length}. ¡Vuelve a intentarlo!`;
+  } else if(grade==='AD'){
+    trophy='🥇';title='¡Logro Destacado!';
+    sub=`¡${score} de ${shuffled.length} correctas! ¡Pesito está muy orgulloso de ti, Luanna!`;
+  } else if(grade==='A'){
+    trophy='🏆';title='¡Logro Esperado!';
+    sub=`¡${score} de ${shuffled.length} correctas! ¡Muy bien hecho!`;
+  } else if(grade==='B'){
+    trophy='⭐';title='¡En Proceso!';
+    sub=`${score} de ${shuffled.length} correctas. ¡Sigue practicando, vas muy bien!`;
+  } else {
+    trophy='💪';title='¡Sigue Esforzándote!';
+    sub=`${score} de ${shuffled.length} correctas. ¡Con práctica mejorarás mucho!`;
+  }
+
+  document.getElementById('trophy-emoji').textContent=trophy;
+  document.getElementById('end-title').textContent=title;
+  document.getElementById('end-sub').textContent=sub;
+  document.getElementById('coins-total').textContent=coins;
+
+  // Stamp
+  const sw=document.getElementById('stamp-wrap');
+  const s=STAMPS[grade];
+  if(s.url){
+    sw.innerHTML=`<img class="stamp-img" src="${s.url}" alt="Sello ${grade}"><div class="stamp-label">${s.label}</div><span class="grade-badge grade-${grade}">${grade}</span>`;
+  } else {
+    sw.innerHTML=`<div class="stamp-placeholder">${s.emoji}</div><div class="stamp-label">${s.label}</div><span class="grade-badge grade-${grade}">${grade}</span>`;
+  }
+
+  if(pct>=0.7)spawnConfetti();
+
+  // Save to history
+  const history=loadHistory();
+  const attempt={
+    n: history.length+1,
+    date: new Date().toLocaleDateString('es-PE',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}),
+    score, total: shuffled.length, coins, grade, outOfLives,
+    questions: [...attemptLog],
+  };
+  history.push(attempt);
+  saveHistory(history);
+}
+
+/* ══════════════════════════════════════════════
+   CONFETTI
+══════════════════════════════════════════════ */
+function spawnConfetti(){
+  const area=document.getElementById('confetti-area');
+  const cols=['#7F77DD','#1D9E75','#EF9F27','#D85A30','#D4537E'];
+  for(let i=0;i<20;i++){
+    const c=document.createElement('div');
+    c.className='confetti-piece';
+    c.style.cssText=`left:${Math.random()*100}%;top:0;background:${cols[i%5]};width:${6+Math.random()*7}px;height:${6+Math.random()*7}px;animation-delay:${Math.random()*.8}s;animation-duration:${1+Math.random()*.8}s;border-radius:${Math.random()>.5?'50%':'2px'}`;
+    area.appendChild(c);
+  }
+}
+
+/* ══════════════════════════════════════════════
+   ADMIN PANEL
+══════════════════════════════════════════════ */
+function showAdmin(){
+  document.getElementById('admin-screen').classList.remove('hidden');
+  const history=loadHistory();
+  const container=document.getElementById('admin-history');
+
+  if(!history.length){
+    container.innerHTML='<div class="no-data">📭 Luanna aún no ha jugado ninguna partida.<br>¡Cuéntale que empiece!</div>';
+    return;
+  }
+
+  const gradeColors={'AD':'#1D9E75','A':'#7F77DD','B':'#EF9F27','C':'#D85A30'};
+  let html='';
+  // Show newest first
+  [...history].reverse().forEach((a,ri)=>{
+    const orig=history.length-ri; // original attempt number
+    const pct=Math.round(a.score/a.total*100);
+    const gc=gradeColors[a.grade]||'#888';
+    html+=`<div class="attempt-card">
+      <div class="attempt-header" onclick="toggleAttempt(${orig})">
+        <div>
+          <div class="attempt-num">Intento #${a.n}${a.outOfLives?' 💔':''}</div>
+          <div class="attempt-date">📅 ${a.date}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="attempt-grade" style="background:${gc};color:#fff">${a.grade}</div>
+          <div style="font-size:11px;color:#7B76B0;margin-top:3px">${a.score}/${a.total} · ${pct}% · ★${a.coins}</div>
+        </div>
+      </div>
+      <div class="attempt-body" id="attempt-${orig}">
+        <div class="attempt-score-row">
+          <span>Correctas: <b>${a.score}</b>/${a.total}</span>
+          <span>Calificación: <b style="color:${gc}">${a.grade}</b></span>
+          <span>Puntos: <b>★${a.coins}</b></span>
+        </div>`;
+    a.questions.forEach(q=>{
+      html+=`<div class="q-row">
+        <span class="q-num">#${q.q}</span>
+        <span class="q-text">${q.text.substring(0,80)}${q.text.length>80?'…':''}</span>
+        <span class="q-ans ${q.ok?'ok':'bad'}">${q.ok?'✓ '+q.correct:'✗ '+q.chosen}</span>
+        <span class="q-time">${q.secs}s</span>
+      </div>`;
+    });
+    html+='</div></div>';
+  });
+  container.innerHTML=html;
+}
+
+function toggleAttempt(n){
+  const b=document.getElementById('attempt-'+n);
+  if(b)b.classList.toggle('open');
+}
+
+/* ══════════════════════════════════════════════
+   KEYBOARD LOGIN
+══════════════════════════════════════════════ */
+// Focus username on load
+document.getElementById('login-user').focus();
+</script>
+</body>
+</html>
