@@ -302,10 +302,30 @@ document.getElementById('login-user').addEventListener('keydown', e => { if (e.k
 // INSTRUCCIÓN: Reemplaza las URLs de abajo con las imágenes reales de tu repositorio.
 // Título y URL de cada sello. Si no hay imagen, se usará emoji como fallback.
 const STAMPS = {
-  AD: { label: 'AD — Logro Destacado',  emoji: '🥇', color: '#1D9E75', url: '' },  // ← pega URL aquí
-  A:  { label: 'A — Logro Esperado',    emoji: '🏆', color: '#7F77DD', url: '' },
-  B:  { label: 'B — En Proceso',        emoji: '⭐', color: '#EF9F27', url: '' },
-  C:  { label: 'C — En Inicio',         emoji: '💪', color: '#D85A30', url: '' },
+  AD: {
+    label: 'AD — Logro Destacado',
+    emoji: '🥇',
+    color: '#1D9E75',
+    url: 'https://raw.githubusercontent.com/Diego906p/masaypeso/refs/heads/main/sellos/sello_ad.png'
+  },
+  A: {
+    label: 'A — Logro Esperado',
+    emoji: '🏆',
+    color: '#7F77DD',
+    url: 'https://raw.githubusercontent.com/Diego906p/masaypeso/refs/heads/main/sellos/sello_a.png'
+  },
+  B: {
+    label: 'B — En Proceso',
+    emoji: '⭐',
+    color: '#EF9F27',
+    url: 'https://raw.githubusercontent.com/Diego906p/masaypeso/refs/heads/main/sellos/sello_b.png'
+  },
+  C: {
+    label: 'C — En Inicio',
+    emoji: '💪',
+    color: '#D85A30',
+    url: 'https://raw.githubusercontent.com/Diego906p/masaypeso/refs/heads/main/sellos/sello_c.png'
+  },
 };
 
 function getGrade(pct) {
@@ -836,13 +856,18 @@ function showEnd(outOfLives=false){
   document.getElementById('coins-total').textContent=coins;
 
   // Stamp
-  const sw=document.getElementById('stamp-wrap');
-  const s=STAMPS[grade];
-  if(s.url){
-    sw.innerHTML=`<img class="stamp-img" src="${s.url}" alt="Sello ${grade}"><div class="stamp-label">${s.label}</div><span class="grade-badge grade-${grade}">${grade}</span>`;
-  } else {
-    sw.innerHTML=`<div class="stamp-placeholder">${s.emoji}</div><div class="stamp-label">${s.label}</div><span class="grade-badge grade-${grade}">${grade}</span>`;
-  }
+const sw = document.getElementById('stamp-wrap');
+const s = STAMPS[grade];
+
+if (s.url) {
+  sw.innerHTML = `
+    <img class="stamp-img" src="${s.url}" alt="Sello ${grade}">
+  `;
+} else {
+  sw.innerHTML = `
+    <div class="stamp-placeholder">${s.emoji}</div>
+  `;
+}
 
   if(pct>=0.7)spawnConfetti();
 
