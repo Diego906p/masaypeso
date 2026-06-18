@@ -13,7 +13,7 @@ firebase.initializeApp(FIREBASE_CONFIG);
 const db = firebase.firestore();
 const rtdb = firebase.database();
 
-const ADMIN_PASSWORD = "papá2026";
+const ADMIN_PASSWORD = "papa2026";
 
 const FB = {
   now: () => Date.now(),
