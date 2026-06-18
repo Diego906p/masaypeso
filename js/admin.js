@@ -90,8 +90,10 @@ function bindTabs(){
 }
 
 function showTab(tab){
-  if(liveUnsub){ liveUnsub(); liveUnsub=null; }
+  liveUnsub = null;
+
   const body=$("#admin-body");
+
   if(tab==="live") renderLive(body);
   else if(tab==="history") renderHistory(body);
   else if(tab==="stats") renderStats(body);
