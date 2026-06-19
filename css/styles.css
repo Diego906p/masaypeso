@@ -1,12 +1,12 @@
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{font-family:'Nunito',system-ui,sans-serif;background:linear-gradient(150deg,#EAE6FF 0%,#E4EEFF 100%);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px 8px 36px;-webkit-font-smoothing:antialiased}
+body{font-family:'Nunito',system-ui,sans-serif;background:linear-gradient(150deg,#EAE6FF 0%,#E4EEFF 100%);min-height:100vh;min-height:100dvh;display:flex;align-items:flex-start;justify-content:center;padding:clamp(8px,2.4vh,28px) clamp(6px,2vw,24px) clamp(20px,4vh,44px);overflow-x:hidden;-webkit-font-smoothing:antialiased}
 .phone{width:100%;max-width:400px;background:#F4F2FF;border-radius:28px;overflow:hidden;box-shadow:0 2px 6px rgba(60,40,180,.06),0 12px 40px rgba(60,40,180,.14),0 28px 56px rgba(60,40,180,.07);display:flex;flex-direction:column}
 
 .header{background:linear-gradient(110deg,#8578E8 0%,#6354D6 50%,#4E3EC4 100%);padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-shrink:0;position:relative;overflow:hidden}
 .header::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 85% 40%,rgba(255,255,255,.09),transparent 65%);pointer-events:none}
 .header-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
-.avatar{width:46px;height:46px;border-radius:50%;background:#fff;flex-shrink:0;overflow:hidden;border:2.5px solid rgba(255,255,255,.45);box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.avatar{width:50px;height:50px;border-radius:50%;background:#fff;flex-shrink:0;overflow:hidden;border:2.5px solid rgba(255,255,255,.45);box-shadow:0 2px 8px rgba(0,0,0,.18)}
 .user-name{font-size:16px;font-weight:900;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
 .user-sub{font-size:11px;font-weight:600;color:rgba(255,255,255,.76);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
@@ -154,7 +154,7 @@ body{font-family:'Nunito',system-ui,sans-serif;background:linear-gradient(150deg
 .profile-card{width:100%;background:#fff;border:2px solid #E4E0F4;border-radius:18px;padding:16px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:border-color .15s,transform .15s,box-shadow .15s;text-align:left}
 .profile-card:hover{border-color:#6350E0;transform:translateY(-2px);box-shadow:0 6px 18px rgba(99,80,224,.16)}
 .profile-card:active{transform:scale(.98)}
-.profile-emoji{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.profile-emoji{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0}
 .profile-emoji.luanna{background:#EDEAFF}
 .profile-emoji.papa{background:#E3EEFF}
 .profile-name{font-size:16px;font-weight:900;color:#1C1852}
@@ -240,3 +240,163 @@ body{font-family:'Nunito',system-ui,sans-serif;background:linear-gradient(150deg
 .end-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:8px}
 .admin-header span{color:#fff;font-weight:900;font-size:17px}
 .pista-btn.active{border-color:#6350E0;color:#6350E0;background:#F5F2FF}
+.continue-btn:disabled,
+.continue-btn.disabled{
+  background:#E8E8E8 !important;
+  color:#9A9A9A !important;
+  border:2px solid #D5D5D5;
+  box-shadow:none !important;
+  cursor:not-allowed !important;
+  opacity:.7;
+  transform:none !important;
+  pointer-events:none;
+}
+
+.continue-btn:disabled:hover,
+.continue-btn.disabled:hover,
+.continue-btn:disabled:active,
+.continue-btn.disabled:active{
+  transform:none !important;
+  box-shadow:none !important;
+}
+
+.q-card,
+.bars-card,
+.canvas-card,
+.opts,
+.opt{
+  width:100%;
+  min-width:0;
+}
+
+.opt-label{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+
+/* ══ AVATARES (imagen) ══ */
+.avatar img,.profile-emoji img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block}
+.profile-emoji{overflow:hidden}
+
+/* ══ Flecha "volver" del header (reemplaza al engranaje en ejercicios) ══ */
+.hdr-back,.hdr-close{width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.17);border:1.5px solid rgba(255,255,255,.3);color:#fff;font-weight:900;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}
+.hdr-back{font-size:22px;padding:0 0 2px}
+.hdr-close{font-size:15px}
+.hdr-back:hover,.hdr-close:hover{background:rgba(255,255,255,.32)}
+.hdr-back:active,.hdr-close:active{transform:scale(.94)}
+
+/* ══ Botón "Información" en login ══ */
+.info-btn{margin-top:8px;display:inline-flex;align-items:center;gap:6px;align-self:center;background:#fff;border:1.5px solid #D5D2E8;border-radius:20px;padding:8px 18px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;color:#6350E0;text-decoration:none;cursor:pointer;transition:border-color .15s,background .15s,transform .14s}
+.info-btn:hover{border-color:#6350E0;background:#F5F2FF;transform:translateY(-1px)}
+.info-btn:active{transform:scale(.97)}
+
+/* ══ Pizarra: separadores, zoom, formas, color ══ */
+.ctool-sep{width:1px;height:24px;background:#E4E0F4;flex-shrink:0;margin:0 2px}
+/* Indicador de grosor del trazo, dentro del lienzo (punto que crece/encoge) */
+.pz-size-ind{position:absolute;top:8px;left:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.85);border:1.5px solid #E4E0F4;border-radius:10px;pointer-events:none;opacity:.55;transition:opacity .2s,box-shadow .2s}
+.pz-size-ind.show{opacity:1;box-shadow:0 0 0 3px rgba(99,80,224,.18)}
+.pz-size-ind span{display:block;border-radius:50%;background:#1C1852;transition:width .1s,height .1s}
+.canvas-wrap{position:relative}
+.pz-zoom{position:absolute;top:5px;right:6px;display:flex;align-items:center;gap:1px;background:rgba(28,24,82,.7);border-radius:9px;padding:1px 2px}
+.pz-zoom span{color:#fff;font-size:9.5px;font-weight:800;min-width:30px;text-align:center}
+.pz-zb{width:18px;height:18px;border:none;border-radius:6px;background:rgba(255,255,255,.18);color:#fff;font-size:10px;font-weight:900;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.pz-zb:hover{background:rgba(255,255,255,.32)}
+.pz-zb:active{transform:scale(.92)}
+/* Menú desplegable de formas */
+.pz-shape-box{position:relative;display:inline-flex}
+#pz-shape{display:inline-flex;align-items:center;justify-content:center;gap:3px;width:auto;padding:0 9px;font-size:14px}
+.pz-shape-menu{position:absolute;bottom:calc(100% + 10px);left:50%;transform:translateX(-50%);z-index:20;background:#fff;border:1.5px solid #E4E0F4;border-radius:16px;padding:7px;display:flex;gap:7px;box-shadow:0 10px 30px rgba(80,60,200,.26)}
+.pz-shape-menu::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:8px solid transparent;border-top-color:#fff;filter:drop-shadow(0 1px 0 #E4E0F4)}
+.pz-shape-menu[hidden]{display:none}
+.pz-shape-menu button{width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:1.5px solid #E4E0F4;background:#fff;border-radius:12px;font-size:20px;cursor:pointer;transition:border-color .14s,background .14s,transform .12s}
+.pz-shape-menu button:hover{border-color:#6350E0;background:#F5F2FF;transform:translateY(-2px)}
+.pz-shape-menu button.active{border-color:#6350E0;background:#EDE9FF;box-shadow:0 0 0 2px rgba(99,80,224,.22)}
+/* Selector único de color */
+.ccolor{width:38px;height:36px;border:1.5px solid #D0CDE6;border-radius:12px;padding:2px;background:#fff;cursor:pointer;flex-shrink:0}
+.ccolor::-webkit-color-swatch-wrapper{padding:0}
+.ccolor::-webkit-color-swatch{border:none;border-radius:8px}
+
+/* ══ ADMIN: botones superiores igual alto ══ */
+.admin-top-actions{display:flex;gap:8px;align-items:stretch}
+.admin-top-btn{height:38px;display:inline-flex;align-items:center;justify-content:center;padding:0 16px;border-radius:12px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;border:none;text-decoration:none;line-height:1;box-sizing:border-box;transition:filter .15s}
+.admin-top-btn.ghost{background:rgba(255,255,255,.18);border:1.5px solid rgba(255,255,255,.32);color:#fff}
+.admin-top-btn.danger{background:#fff;color:#C62828}
+.admin-top-btn:hover{filter:brightness(.96)}
+
+/* ══ ADMIN: filtros por día ══ */
+.admin-filter{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.admin-filter label{font-weight:800;font-size:13px;color:#6C699A}
+.admin-filter select{font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#1C1852;border:1.5px solid #D5D2E8;border-radius:12px;padding:8px 12px;background:#fff;cursor:pointer}
+.day-group{margin-bottom:22px}
+.day-header{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:14px;color:#1C1852;text-transform:capitalize;background:#EDEAFF;border-radius:12px;padding:9px 14px;margin-bottom:8px}
+.day-header span{font-size:11px;font-weight:700;color:#6350E0;text-transform:none}
+.stats-section-title{font-weight:900;font-size:14px;color:#1C1852;margin:6px 0 12px}
+.stats-section-title:not(:first-child){margin-top:22px}
+
+/* ══ ADMIN: botón encender/apagar fase ══ */
+.phase-toggle-row.is-off{opacity:.72}
+.phase-power{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:14px;padding:9px 16px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;flex-shrink:0;transition:filter .15s,transform .14s}
+.phase-power .dot{width:9px;height:9px;border-radius:50%;background:currentColor}
+.phase-power.on{background:#DFFAF4;color:#007965;box-shadow:inset 0 0 0 1.5px #7DD9C8}
+.phase-power.off{background:#F0EEFA;color:#9590C8;box-shadow:inset 0 0 0 1.5px #DDD9F6}
+.phase-power:hover{filter:brightness(.97)}
+.phase-power:active{transform:scale(.96)}
+
+/* ══ APP SHELL RESPONSIVO ══
+   Ancho homogéneo (capado) en todos los dispositivos.
+   El alto crece según el contenido de cada ejercicio. */
+:root{
+  --app-max:460px;     /* ancho homogéneo de las Fases */
+  --app-radius:30px;
+}
+
+.phone-shell{
+  position:relative;
+  width:100%;
+  max-width:var(--app-max);
+  margin:0 auto;
+  background:#F4F2FF;
+  border-radius:var(--app-radius);
+  overflow:hidden;
+  box-shadow:0 2px 6px rgba(60,40,180,.06),
+             0 12px 40px rgba(60,40,180,.14),
+             0 28px 56px rgba(60,40,180,.07);
+  display:flex;
+  flex-direction:column;
+}
+
+/* notch decorativo: oculto para no chocar con el header de la app */
+.phone-notch{display:none;}
+
+.phone-screen{
+  width:100%;
+  min-width:0;
+  overflow-x:hidden;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Evita desbordes horizontales de cualquier hijo */
+.phone-screen *{max-width:100%;}
+
+/* ── 📱 Celular: pantalla completa, sin marco que desperdicie bordes ── */
+@media(max-width:480px){
+  body{padding:0;}
+  .phone-shell{
+    max-width:100%;
+    border-radius:0;
+    min-height:100dvh;
+    box-shadow:none;
+  }
+}
+
+/* ── 📲 Tablet: marco centrado, algo más ancho ── */
+@media(min-width:481px) and (max-width:1024px){
+  :root{--app-max:500px;}
+}
+
+/* ── 💻 Laptop / 🖥️ Monitor 1920: ancho homogéneo, contenido centrado ── */
+@media(min-width:1025px){
+  :root{--app-max:480px;}
+  body{align-items:flex-start;}
+}

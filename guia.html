@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#6350E0">
+<title>Guía de uso — Kilos y Gramos ⚖️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',system-ui,sans-serif;background:linear-gradient(150deg,#EAE6FF,#E4EEFF);color:#1C1852;line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:840px;margin:0 auto;padding:clamp(14px,3vw,32px) clamp(12px,3vw,24px) 60px}
+a{color:#6350E0}
+.hero{background:linear-gradient(110deg,#8578E8,#6354D6 55%,#4E3EC4);border-radius:26px;padding:clamp(24px,5vw,40px);color:#fff;text-align:center;box-shadow:0 14px 40px rgba(60,40,180,.22);position:relative;overflow:hidden}
+.hero::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 80% 20%,rgba(255,255,255,.14),transparent 60%)}
+.hero .logo{width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:38px;margin:0 auto 12px;border:2px solid rgba(255,255,255,.35)}
+.hero h1{font-size:clamp(24px,5vw,34px);font-weight:900;letter-spacing:-.5px}
+.hero p{font-weight:600;opacity:.9;margin-top:6px}
+.back-link{display:inline-flex;align-items:center;gap:6px;margin-bottom:14px;background:#fff;border:1.5px solid #D5D2E8;border-radius:20px;padding:8px 16px;font-weight:800;font-size:13px;text-decoration:none}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0}
+.toc a{background:#fff;border:1.5px solid #E4E0F4;border-radius:14px;padding:8px 14px;font-weight:800;font-size:13px;text-decoration:none;color:#4E3EC4;transition:transform .14s,border-color .15s}
+.toc a:hover{transform:translateY(-2px);border-color:#6350E0}
+.card{background:#fff;border-radius:22px;padding:clamp(18px,3.5vw,28px);margin-top:20px;box-shadow:0 2px 10px rgba(80,60,200,.07),0 0 0 1px rgba(200,195,240,.3)}
+.card h2{font-size:clamp(18px,3.5vw,23px);font-weight:900;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.card h2 .n{width:34px;height:34px;border-radius:10px;background:#EDEAFF;color:#6350E0;display:inline-flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.card p{margin:8px 0;font-weight:600;color:#444168}
+.steps{list-style:none;counter-reset:s;margin-top:8px}
+.steps li{counter-increment:s;position:relative;padding:8px 0 8px 40px;font-weight:700;color:#333158}
+.steps li::before{content:counter(s);position:absolute;left:0;top:7px;width:26px;height:26px;border-radius:50%;background:#6350E0;color:#fff;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center}
+.phase-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.phase-item{border:1.5px solid #E4E0F4;border-radius:14px;padding:12px 14px}
+.phase-item b{color:#4E3EC4}
+.phase-item span{display:block;font-size:13px;color:#8B87B5;font-weight:600}
+.tip{background:#F0FDFB;border:1.5px solid #7DD9C8;border-radius:14px;padding:12px 16px;font-weight:700;color:#005A50;margin-top:12px}
+/* Demo pizarra */
+.demo-tools{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.demo-tools button{border:1.5px solid #D0CDE6;background:#fff;border-radius:12px;min-width:40px;height:40px;padding:0 10px;font-size:17px;cursor:pointer;font-family:inherit;font-weight:800;color:#4E3EC4}
+.demo-tools button.active{border-color:#6350E0;background:#EDE9FF}
+.demo-wrap{border:1.5px solid #E4E0F4;border-radius:14px;overflow:hidden;background:#fff;touch-action:none}
+.demo-wrap canvas{display:block;width:100%;touch-action:none}
+.swatches{display:flex;gap:6px;align-items:center}
+.swatches span{width:22px;height:22px;border-radius:50%;cursor:pointer;box-shadow:0 0 0 1.5px #D0CDE6}
+.swatches span.active{box-shadow:0 0 0 2px #6350E0}
+/* Demo barras */
+.bars{margin-top:8px;display:flex;flex-direction:column;gap:10px}
+.brow{display:flex;align-items:center;gap:10px}
+.blbl{width:80px;font-weight:800;font-size:13px;color:#333158}
+.btrack{flex:1;height:22px;background:#EDEAFF;border-radius:11px;overflow:hidden}
+.bfill{height:100%;border-radius:11px;width:0;transition:width 1s cubic-bezier(.34,1.3,.64,1)}
+.bval{width:64px;text-align:right;font-weight:900;font-size:13px}
+.demo-btn{margin-top:12px;background:linear-gradient(135deg,#7C6FF5,#5646D0);color:#fff;border:none;border-radius:16px;padding:11px 22px;font-family:inherit;font-weight:800;font-size:14px;cursor:pointer}
+footer{text-align:center;margin-top:30px;color:#8B87B5;font-weight:700;font-size:13px}
+kbd{background:#EDEAFF;border-radius:7px;padding:2px 8px;font-weight:800;color:#4E3EC4;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back-link" href="index.html">‹ Volver al juego</a>
+
+  <div class="hero">
+    <div class="logo">⚖️</div>
+    <h1>Kilos y Gramos</h1>
+    <p>Guía de uso — aprende a sumar y restar masas jugando</p>
+  </div>
+
+  <nav class="toc">
+    <a href="#que">¿Qué es?</a>
+    <a href="#jugar">Cómo jugar</a>
+    <a href="#fases">Las fases</a>
+    <a href="#pizarra">La pizarra</a>
+    <a href="#barras">Modelo de barras</a>
+    <a href="#papa">Panel de Papá</a>
+    <a href="#sonidos">Sonidos</a>
+  </nav>
+
+  <section class="card" id="que">
+    <h2><span class="n">🎯</span>¿Qué es?</h2>
+    <p>Una app educativa para practicar <b>suma y resta de masas</b> (kilogramos y gramos)
+    mediante problemas con sentido real: compras en el mercado, recetas de cocina, la mochila
+    del colegio o la bolsa de frutas. Cada problema se acompaña de un <b>modelo de barras</b>
+    y una <b>pizarra</b> para razonar el procedimiento.</p>
+    <div class="tip">💡 Los objetos de cada problema siempre se relacionan entre sí, para que el razonamiento tenga lógica.</div>
+  </section>
+
+  <section class="card" id="jugar">
+    <h2><span class="n">🦄</span>Cómo jugar</h2>
+    <ol class="steps">
+      <li>En la pantalla de inicio, toca el perfil de <b>Luanna</b>.</li>
+      <li>Elige una <b>fase</b> habilitada (las bloqueadas tienen 🔒).</li>
+      <li>Lee el problema. Usa la <b>pizarra</b> para hacer tus cuentas y el <b>modelo de barras</b> como guía visual.</li>
+      <li>Toca <b>💡 Pista</b> si necesitas ayuda, luego elige una de las 4 opciones (A–D).</li>
+      <li>Pulsa <b>Siguiente ›</b>. Al terminar los 10 niveles verás tu calificación (AD, A, B o C).</li>
+    </ol>
+    <p>Para salir de un ejercicio y volver a elegir fase, usa la <b>flecha ‹</b> arriba a la derecha.</p>
+  </section>
+
+  <section class="card" id="fases">
+    <h2><span class="n">📚</span>Las 10 fases</h2>
+    <div class="phase-list" id="phase-list"></div>
+  </section>
+
+  <section class="card" id="pizarra">
+    <h2><span class="n">🎨</span>La pizarra (pruébala)</h2>
+    <p>Dibuja, traza formas, cambia el papel y haz zoom. Esta es una versión de práctica idéntica a la del juego:</p>
+    <div class="demo-tools">
+      <button data-tool="pencil" class="active" title="Lápiz">✏️</button>
+      <button data-tool="line" title="Línea">📏</button>
+      <button data-tool="rect" title="Cuadrado">⬜</button>
+      <button data-tool="triangle" title="Triángulo">🔺</button>
+      <button data-tool="circle" title="Círculo">⭕</button>
+      <button id="d-paper" title="Papel">▦</button>
+      <button id="d-clear" title="Limpiar">🗑️</button>
+      <div class="swatches" id="d-colors"></div>
+    </div>
+    <div class="demo-wrap"><canvas id="demo-canvas"></canvas></div>
+    <div class="tip">En el juego además puedes <b>borrar</b> 🧽, <b>deshacer/rehacer</b> ↩️↪️, <b>acercar/alejar</b> ➕➖ y <b>desplazar</b> ✋ para tener más espacio.</div>
+  </section>
+
+  <section class="card" id="barras">
+    <h2><span class="n">📊</span>Modelo de barras</h2>
+    <p>Las barras muestran cada peso para componer (sumar) y descomponer (restar). Al iniciar el problema
+    se llenan de forma fluida; la barra con <b>?</b> se completa cuando respondes.</p>
+    <div class="bars" id="demo-bars"></div>
+    <button class="demo-btn" id="bars-play">▶ Ver animación</button>
+  </section>
+
+  <section class="card" id="papa">
+    <h2><span class="n">🔐</span>Panel de Papá</h2>
+    <p>Desde el inicio, toca <b>Papá</b> e ingresa la contraseña. Allí puedes:</p>
+    <ul class="steps">
+      <li><b>En vivo:</b> ver qué está resolviendo en este momento.</li>
+      <li><b>Historial:</b> revisar cada respuesta y su pizarra, <b>agrupado por día</b>.</li>
+      <li><b>Estadísticas:</b> precisión, aciertos y tiempo, <b>filtrables por día</b>.</li>
+      <li><b>Fases:</b> activar o desactivar fases con un botón de encendido.</li>
+    </ul>
+  </section>
+
+  <section class="card" id="sonidos">
+    <h2><span class="n">🔊</span>Sonidos</h2>
+    <p>La app reproduce un sonido suave al <b>acertar</b>, otro al <b>fallar</b> y una <b>fanfarria</b> al
+    terminar una fase. Pruébalos:</p>
+    <div class="demo-tools">
+      <button class="demo-btn" id="s-ok" style="margin:0">✅ Acierto</button>
+      <button class="demo-btn" id="s-bad" style="margin:0;background:linear-gradient(135deg,#F07070,#E8544A)">❌ Error</button>
+      <button class="demo-btn" id="s-win" style="margin:0;background:linear-gradient(135deg,#00C99A,#00A87E)">🏆 Victoria</button>
+    </div>
+  </section>
+
+  <footer>Kilos y Gramos ⚖️ · Guía de uso</footer>
+</div>
+
+<script src="js/exercises.js"></script>
+<script src="js/sound.js"></script>
+<script>
+/* Lista de fases desde exercises.js */
+(function(){
+  const el=document.getElementById("phase-list");
+  if(window.PHASE_META){
+    el.innerHTML=PHASE_META.map((m,i)=>`<div class="phase-item"><b>Fase ${i+1}: ${m.name}</b><span>${m.desc}</span></div>`).join("");
+  }
+})();
+
+/* Demo de pizarra (versión compacta de la real) */
+(function(){
+  const COLORS=["#1C1852","#6350E0","#2B8EFF","#00B49A","#E08A2B","#E0508C"];
+  const canvas=document.getElementById("demo-canvas"), ctx=canvas.getContext("2d");
+  const wrap=canvas.parentElement;
+  let strokes=[], cur=null, tool="pencil", color=COLORS[0], paper="grid", dpr=1, cssW=0, cssH=0, drawing=false;
+  const GRID=26;
+
+  const sw=document.getElementById("d-colors");
+  sw.innerHTML=COLORS.map((c,i)=>`<span data-c="${c}" class="${i===0?"active":""}" style="background:${c}"></span>`).join("");
+  sw.querySelectorAll("span").forEach(s=>s.onclick=()=>{color=s.dataset.c;sw.querySelectorAll("span").forEach(x=>x.classList.remove("active"));s.classList.add("active");});
+
+  document.querySelectorAll(".demo-tools button[data-tool]").forEach(b=>b.onclick=()=>{
+    tool=b.dataset.tool;
+    document.querySelectorAll(".demo-tools button[data-tool]").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active");
+  });
+  document.getElementById("d-paper").onclick=()=>{paper=paper==="grid"?(paper="lined"):(paper==="lined"?"plain":"grid");redraw();};
+  document.getElementById("d-clear").onclick=()=>{strokes=[];redraw();};
+
+  function resize(){cssW=Math.max(wrap.clientWidth,200);cssH=Math.round(cssW*0.5);dpr=window.devicePixelRatio||1;canvas.width=cssW*dpr;canvas.height=cssH*dpr;canvas.style.height=cssH+"px";ctx.setTransform(dpr,0,0,dpr,0,0);redraw();}
+  function pt(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};}
+  function drawPaper(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle="#fff";ctx.fillRect(0,0,cssW,cssH);if(paper!=="plain"){ctx.strokeStyle="#E4E0F4";ctx.lineWidth=1;for(let y=GRID;y<cssH;y+=GRID){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(cssW,y);ctx.stroke();}if(paper==="grid")for(let x=GRID;x<cssW;x+=GRID){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,cssH);ctx.stroke();}}}
+  function drawOne(s){ctx.lineJoin="round";ctx.lineCap="round";ctx.lineWidth=3.5;ctx.strokeStyle=s.color;ctx.beginPath();const p=s.pts;if(s.type==="free"){ctx.moveTo(p[0].x,p[0].y);for(let k=1;k<p.length;k++)ctx.lineTo(p[k].x,p[k].y);}else if(s.type==="line"){ctx.moveTo(p[0].x,p[0].y);ctx.lineTo(p[1].x,p[1].y);}else if(s.type==="rect"){ctx.rect(Math.min(p[0].x,p[1].x),Math.min(p[0].y,p[1].y),Math.abs(p[1].x-p[0].x),Math.abs(p[1].y-p[0].y));}else if(s.type==="triangle"){ctx.moveTo((p[0].x+p[1].x)/2,p[0].y);ctx.lineTo(p[1].x,p[1].y);ctx.lineTo(p[0].x,p[1].y);ctx.closePath();}else if(s.type==="circle"){const cx=(p[0].x+p[1].x)/2,cy=(p[0].y+p[1].y)/2;ctx.ellipse(cx,cy,Math.abs(p[1].x-p[0].x)/2,Math.abs(p[1].y-p[0].y)/2,0,0,Math.PI*2);}ctx.stroke();}
+  function redraw(){drawPaper();strokes.forEach(drawOne);if(cur)drawOne(cur);}
+  canvas.addEventListener("pointerdown",e=>{e.preventDefault();canvas.setPointerCapture(e.pointerId);drawing=true;cur={color,type:tool==="pencil"?"free":tool,pts:[pt(e)]};});
+  canvas.addEventListener("pointermove",e=>{if(!drawing)return;const p=pt(e);if(cur.type==="free")cur.pts.push(p);else cur.pts[1]=p;redraw();});
+  function end(){if(!drawing)return;drawing=false;if(cur&&cur.pts.length>1)strokes.push(cur);cur=null;redraw();}
+  canvas.addEventListener("pointerup",end);canvas.addEventListener("pointercancel",end);canvas.addEventListener("pointerleave",end);
+  window.addEventListener("resize",resize);resize();
+})();
+
+/* Demo de barras animadas */
+(function(){
+  const data=[["🍚 Arroz","#6350E0",800,"800 g"],["🍎 Manzanas","#2B8EFF",450,"450 g"],["📦 Total","#00B49A",1250,"1 kg 250 g"]];
+  const max=1250;
+  const el=document.getElementById("demo-bars");
+  el.innerHTML=data.map(([l,c,v,t])=>`<div class="brow"><div class="blbl">${l}</div><div class="btrack"><div class="bfill" data-pct="${Math.max(5,Math.round(v/max*100))}" style="background:${c}"></div></div><div class="bval" style="color:${c}">${t}</div></div>`).join("");
+  function play(){el.querySelectorAll(".bfill").forEach(f=>f.style.width="0");requestAnimationFrame(()=>requestAnimationFrame(()=>el.querySelectorAll(".bfill").forEach(f=>f.style.width=f.dataset.pct+"%")));}
+  document.getElementById("bars-play").onclick=play;
+  setTimeout(play,400);
+})();
+
+/* Sonidos */
+document.getElementById("s-ok").onclick=()=>Sound.correct();
+document.getElementById("s-bad").onclick=()=>Sound.wrong();
+document.getElementById("s-win").onclick=()=>Sound.victory();
+</script>
+</body>
+</html>

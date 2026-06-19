@@ -30,6 +30,16 @@ let adminCFG=null, liveUnsub=null;
 function $(s){ return document.querySelector(s); }
 function fmtTS(ts){ if(!ts) return "—"; const d=new Date(ts); return d.toLocaleDateString("es-PE")+" "+d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}); }
 function elapsed(ms){ const s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60); return h?h+"h "+( m%60)+"m":(m?m+"m "+( s%60)+"s":s+"s"); }
+function dayKey(ts){ const d=new Date(ts||0); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function dayLabel(key){
+  const [y,m,d]=key.split("-").map(Number);
+  const date=new Date(y,m-1,d);
+  const today=dayKey(Date.now()), yest=dayKey(Date.now()-86400000);
+  if(key===today) return "Hoy";
+  if(key===yest) return "Ayer";
+  return date.toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long"});
+}
+function distinctDays(items, field){ return [...new Set(items.map(i=>dayKey(i[field])))].sort().reverse(); }
 
 async function initAdmin(){
   const saved=sessionStorage.getItem("pm_admin_auth");
@@ -39,7 +49,12 @@ async function initAdmin(){
   renderShell();
   adminCFG=await AdminStore.getConfig();
   bindTabs();
-  showTab("live");
+  const lastTab=sessionStorage.getItem("pm_admin_tab")||"live";
+  activateTab(lastTab);
+}
+function activateTab(tab){
+  document.querySelectorAll(".tab-btn").forEach(x=>x.classList.toggle("active",x.dataset.tab===tab));
+  showTab(tab);
 }
 
 function renderGate(){
@@ -67,9 +82,9 @@ function renderShell(){
     <div class="admin-shell">
       <div class="admin-header">
         <span>⚖️ Kilos y Gramos — Panel de papá</span>
-        <div style="display:flex;gap:10px;align-items:center">
-          <a href="index.html" class="modal-btn ghost" style="text-decoration:none;font-size:13px">‹ Juego</a>
-          <button class="danger-btn" id="logout-btn" style="font-size:13px;padding:6px 12px">Salir</button>
+        <div class="admin-top-actions">
+          <a href="index.html" class="admin-top-btn ghost">‹ Juego</a>
+          <button class="admin-top-btn danger" id="logout-btn">Salir</button>
         </div>
       </div>
       <div class="admin-tabs">
@@ -90,6 +105,7 @@ function bindTabs(){
 }
 
 function showTab(tab){
+  sessionStorage.setItem("pm_admin_tab",tab);
   liveUnsub = null;
   const body=$("#admin-body");
   if(tab==="live") renderLive(body);
@@ -123,25 +139,48 @@ function renderLive(body){
   }catch(e){ body.innerHTML=`<div class="live-panel"><div class="live-row"><span>Sin datos en tiempo real (modo local).</span></div></div>`; }
 }
 
+let _histList=[];
 async function renderHistory(body){
   body.innerHTML=`<div style="padding:20px;text-align:center">Cargando historial...</div>`;
-  const list=await AdminStore.getHistory(200);
-  if(!list.length){ body.innerHTML=`<div style="padding:20px;text-align:center;color:#888">Sin historial aún.</div>`; return; }
-  const rows=list.map(h=>`<tr style="cursor:pointer" data-id="${h.id||""}" data-idx="${list.indexOf(h)}">
-    <td>${fmtTS(h.ts)}</td>
-    <td>Fase ${(h.phase||0)+1} · Niv ${h.level||1}</td>
-    <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(h.question||"").substring(0,60)}</td>
-    <td><span class="tag ${h.result==="correcta"?"ok":h.result==="abandonada"?"abandoned":"bad"}">${h.result||"?"}</span></td>
-  </tr>`).join("");
+  _histList=await AdminStore.getHistory(500);
+  if(!_histList.length){ body.innerHTML=`<div style="padding:20px;text-align:center;color:#888">Sin historial aún.</div>`; return; }
+  const days=distinctDays(_histList,"ts");
+  const optHTML=`<option value="all">Todos los días</option>`+days.map(k=>`<option value="${k}">${dayLabel(k)}</option>`).join("");
   body.innerHTML=`
-    <div style="overflow-x:auto">
-      <table class="admin-table">
-        <thead><tr><th>Fecha</th><th>Fase · Nivel</th><th>Pregunta</th><th>Resultado</th></tr></thead>
-        <tbody id="hist-tbody">${rows}</tbody>
-      </table>
+    <div class="admin-filter">
+      <label>📅 Día:</label>
+      <select id="hist-day">${optHTML}</select>
+    </div>
+    <div id="hist-content"></div>`;
+  const sel=$("#hist-day");
+  sel.value=days[0]; // por defecto, día más reciente
+  sel.onchange=()=>paintHistory(sel.value);
+  paintHistory(sel.value);
+}
+function paintHistory(dayFilter){
+  const cont=$("#hist-content");
+  const list=dayFilter==="all"?_histList:_histList.filter(h=>dayKey(h.ts)===dayFilter);
+  // agrupar por día
+  const groups={};
+  list.forEach(h=>{ const k=dayKey(h.ts); (groups[k]=groups[k]||[]).push(h); });
+  const keys=Object.keys(groups).sort().reverse();
+  cont.innerHTML=keys.map(k=>{
+    const rows=groups[k].map(h=>`<tr style="cursor:pointer" data-idx="${_histList.indexOf(h)}">
+      <td>${fmtTS(h.ts).split(" ")[1]||""}</td>
+      <td>F${(h.phase||0)+1} · N${h.level||1}</td>
+      <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(h.question||"").substring(0,60)}</td>
+      <td><span class="tag ${h.result==="correcta"?"ok":h.result==="abandonada"?"abandoned":"bad"}">${h.result||"?"}</span></td>
+    </tr>`).join("");
+    return `<div class="day-group">
+      <div class="day-header">${dayLabel(k)} <span>${groups[k].length} ejercicios</span></div>
+      <div style="overflow-x:auto"><table class="admin-table">
+        <thead><tr><th>Hora</th><th>Fase·Niv</th><th>Pregunta</th><th>Resultado</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table></div>
     </div>`;
-  body.querySelectorAll("tr[data-idx]").forEach(row=>{
-    row.onclick=()=>openCanvasModal(list[+row.dataset.idx]);
+  }).join("");
+  cont.querySelectorAll("tr[data-idx]").forEach(row=>{
+    row.onclick=()=>openCanvasModal(_histList[+row.dataset.idx]);
   });
 }
 
@@ -172,48 +211,77 @@ function openCanvasModal(h){
   ov.onclick=(e)=>{ if(e.target===ov) ov.remove(); };
 }
 
+let _statsData=null;
 async function renderStats(body){
   body.innerHTML=`<div style="padding:20px;text-align:center">Calculando estadísticas...</div>`;
   const [progress,history,sessions]=await Promise.all([AdminStore.getProgress(),AdminStore.getHistory(500),AdminStore.getSessions()]);
   if(!progress){ body.innerHTML=`<div style="padding:20px;text-align:center;color:#888">Sin datos aún.</div>`; return; }
-  const total=history.length;
-  const correctas=history.filter(h=>h.result==="correcta").length;
-  const incorrectas=history.filter(h=>h.result==="incorrecta").length;
-  const abandonadas=history.filter(h=>h.result==="abandonada").length;
+  _statsData={progress,history,sessions};
+  const days=distinctDays(history,"ts");
+  const optHTML=`<option value="all">Todos los días</option>`+days.map(k=>`<option value="${k}">${dayLabel(k)}</option>`).join("");
+  body.innerHTML=`
+    <div class="admin-filter">
+      <label>📅 Día:</label>
+      <select id="stats-day">${optHTML}</select>
+    </div>
+    <div id="stats-content"></div>`;
+  const sel=$("#stats-day");
+  sel.onchange=()=>paintStats(sel.value);
+  paintStats("all");
+}
+function paintStats(dayFilter){
+  const {progress,history,sessions}=_statsData;
+  const all=dayFilter==="all";
+  const hist=all?history:history.filter(h=>dayKey(h.ts)===dayFilter);
+  const sess=all?sessions:sessions.filter(s=>dayKey(s.start)===dayFilter);
+  const total=hist.length;
+  const correctas=hist.filter(h=>h.result==="correcta").length;
+  const incorrectas=hist.filter(h=>h.result==="incorrecta").length;
+  const abandonadas=hist.filter(h=>h.result==="abandonada").length;
   const acc=total?Math.round((correctas/total)*100):0;
-  const completedSessions=sessions.filter(s=>s.end).length;
-  const totalSessTime=sessions.filter(s=>s.end).reduce((a,s)=>a+(s.end-s.start),0);
+  const completedSessions=sess.filter(s=>s.end).length;
+  const totalSessTime=sess.filter(s=>s.end).reduce((a,s)=>a+(s.end-s.start),0);
   const avgSess=completedSessions?Math.round(totalSessTime/completedSessions/1000/60):0;
-  const phasesCompleted=(progress.phaseStars||[]).filter((s,i)=>s>0&&i<PHASE_TOTAL).length;
-  const cards=[
-    ["📚 Sesiones","Completadas",completedSessions],["⭐ Estrellas","Acumuladas",progress.stars||0],
-    ["🔥 Racha máx.","Alguna vez",progress.bestStreak||0],["✅ Respuestas","Correctas",correctas],
-    ["❌ Incorrectas","Total",incorrectas],["⏭️ Abandonadas","Sin responder",abandonadas],
-    ["🎯 Precisión",`de ${total} ejercicios`,acc+"%"],["⏱️ Tiempo promedio","Por sesión",avgSess+" min"],
-    ["🏆 Fases","Iniciadas",phasesCompleted]
-  ].map(([t,sub,v])=>`
+  // Cards dependientes del día
+  const dayCards=[
+    ["✅ Correctas","Respuestas",correctas],["❌ Incorrectas","Respuestas",incorrectas],
+    ["⏭️ Abandonadas","Sin responder",abandonadas],["🎯 Precisión",`de ${total} ejercicios`,acc+"%"],
+    ["📚 Sesiones","Completadas",completedSessions],["⏱️ Tiempo prom.","Por sesión",avgSess+" min"]
+  ];
+  // Cards acumulados (siempre globales)
+  const cumCards=[
+    ["⭐ Estrellas","Acumuladas (total)",progress.stars||0],
+    ["🔥 Racha máx.","Histórica",progress.bestStreak||0],
+    ["🏆 Fases","Iniciadas (total)",(progress.phaseStars||[]).filter((s,i)=>s>0&&i<PHASE_TOTAL).length]
+  ];
+  const card=([t,sub,v])=>`
     <div class="admin-card">
       <div style="font-size:22px;font-weight:800;color:#6350E0">${v}</div>
       <div style="font-weight:600;font-size:14px;margin:2px 0">${t}</div>
       <div style="font-size:12px;color:#888">${sub}</div>
-    </div>`).join("");
-  body.innerHTML=`<div class="admin-grid">${cards}</div>`;
+    </div>`;
+  $("#stats-content").innerHTML=`
+    <div class="stats-section-title">${all?"📊 Resumen total":"📊 "+dayLabel(dayFilter)}</div>
+    <div class="admin-grid">${dayCards.map(card).join("")}</div>
+    <div class="stats-section-title">🏅 Acumulado histórico</div>
+    <div class="admin-grid">${cumCards.map(card).join("")}</div>`;
 }
 
 async function renderPhases(body){
   const cfg=await AdminStore.getConfig();
   adminCFG=cfg;
-  const rows=PHASE_META.map((m,i)=>`
-    <div class="phase-toggle-row">
+  const rows=PHASE_META.map((m,i)=>{
+    const on=cfg.enabled[i]!==false;
+    return `
+    <div class="phase-toggle-row ${on?"":"is-off"}">
       <div>
-        <div style="font-weight:600">Fase ${i+1}: ${m.name}</div>
+        <div style="font-weight:700">Fase ${i+1}: ${m.name}</div>
         <div style="font-size:12px;color:#888">${m.desc}</div>
       </div>
-      <label class="switch">
-        <input type="checkbox" class="phase-toggle" data-i="${i}" ${cfg.enabled[i]!==false?"checked":""}>
-        <span class="slider"></span>
-      </label>
-    </div>`).join("");
+      <button class="phase-power ${on?"on":"off"}" data-i="${i}">
+        <span class="dot"></span>${on?"Activada":"Desactivada"}
+      </button>
+    </div>`;}).join("");
   body.innerHTML=`
     <div style="padding:16px">
       <div style="margin-bottom:16px;font-size:14px;color:#555">Activa o desactiva fases para Luanna. Solo puede acceder a las fases habilitadas.</div>
@@ -224,9 +292,14 @@ async function renderPhases(body){
         <button class="danger-btn" id="reset-btn">🗑️ Reiniciar todo el progreso</button>
       </div>
     </div>`;
-  body.querySelectorAll(".phase-toggle").forEach(cb=>{
-    cb.onchange=async()=>{
-      adminCFG.enabled[+cb.dataset.i]=cb.checked;
+  body.querySelectorAll(".phase-power").forEach(btn=>{
+    btn.onclick=async()=>{
+      const i=+btn.dataset.i;
+      const newState=!(adminCFG.enabled[i]!==false);
+      adminCFG.enabled[i]=newState;
+      btn.classList.toggle("on",newState); btn.classList.toggle("off",!newState);
+      btn.innerHTML=`<span class="dot"></span>${newState?"Activada":"Desactivada"}`;
+      btn.closest(".phase-toggle-row").classList.toggle("is-off",!newState);
       await AdminStore.saveConfig(adminCFG);
     };
   });
