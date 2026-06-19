@@ -83,29 +83,41 @@ function renderWelcome(){
 }
 
 function openAdminModal(){
-  const ov = document.createElement("div");
-  ov.className = "modal-overlay";
-  ov.innerHTML = `
-    <div class="modal-box">
-      <h3>🔐 Acceso de Papá</h3>
-      <p>Ingresa la contraseña para acceder al panel.</p>
-      <input type="password" class="modal-input" id="admin-pass" placeholder="Contraseña">
-      <div class="modal-error" id="admin-err"></div>
-      <div class="modal-actions">
-        <button class="modal-btn ghost" id="admin-cancel">Cancelar</button>
-        <button class="modal-btn primary" id="admin-ok">Entrar</button>
-      </div>
-    </div>`;
-  document.body.appendChild(ov);
-  const inp = ov.querySelector("#admin-pass");
-  inp.focus();
-  ov.querySelector("#admin-cancel").onclick = ()=>ov.remove();
-  const tryLogin = ()=>{
-    if(inp.value===ADMIN_PASSWORD){ window.location.href="admin.html"; }
-    else{ ov.querySelector("#admin-err").textContent="Contraseña incorrecta"; }
-  };
-  ov.querySelector("#admin-ok").onclick = tryLogin;
-  inp.onkeydown = (e)=>{ if(e.key==="Enter") tryLogin(); };
+const ov = document.createElement("div");
+ov.className = "modal-overlay";
+ov.innerHTML = `
+<div class="modal-box">
+  <h3>🔐 Acceso de Papá</h3>
+  <p>Ingresa la contraseña para acceder al panel.</p>
+  <input type="password" class="modal-input" id="admin-pass" placeholder="Contraseña">
+  <div class="modal-error" id="admin-err"></div>
+  <div class="modal-actions">
+    <button class="modal-btn ghost" id="admin-cancel">Cancelar</button>
+    <button class="modal-btn primary" id="admin-ok">Entrar</button>
+  </div>
+</div>`;
+
+document.body.appendChild(ov);
+
+const inp = ov.querySelector("#admin-pass");
+inp.focus();
+
+ov.querySelector("#admin-cancel").onclick = ()=>ov.remove();
+
+const tryLogin = ()=>{
+if(inp.value === ADMIN_PASSWORD){
+sessionStorage.setItem("pm_admin_auth", "ok");
+window.location.href = "admin.html";
+}else{
+ov.querySelector("#admin-err").textContent = "Contraseña incorrecta";
+}
+};
+
+ov.querySelector("#admin-ok").onclick = tryLogin;
+
+inp.onkeydown = (e)=>{
+if(e.key === "Enter") tryLogin();
+};
 }
 
 async function loginLuanna(){
