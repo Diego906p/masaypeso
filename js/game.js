@@ -87,7 +87,7 @@ const ov = document.createElement("div");
 ov.className = "modal-overlay";
 ov.innerHTML = `
 <div class="modal-box">
-  <h3>🔐 Acceso de Papá</h3>
+  <h3>🔐 Acceso de papá</h3>
   <p>Ingresa la contraseña para acceder al panel.</p>
   <input type="password" class="modal-input" id="admin-pass" placeholder="Contraseña">
   <div class="modal-error" id="admin-err"></div>
