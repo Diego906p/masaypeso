@@ -50,6 +50,14 @@ const Store = {
 let P=null, CFG=null, sessionId=null;
 const runtime = { ex:null, answered:false, hintOn:false, phaseCorrect:0, phaseWrong:0, phaseUnanswered:0 };
 
+function isEnabled(i){
+  return !CFG?.enabled || CFG.enabled[i] !== false;
+}
+  
+function isUnlocked(i){
+  return isEnabled(i);
+}
+
 function $(sel){ return document.querySelector(sel); }
 function scr(){ return document.getElementById("screen"); }
 
