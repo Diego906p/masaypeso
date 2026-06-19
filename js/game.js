@@ -112,8 +112,9 @@ async function loginLuanna(){
   renderPhaseSelect();
 }
 
-function isEnabled(i){ return !CFG.enabled || CFG.enabled[i]!==false; }
-function isUnlocked(i){ return i===0 || (i<=P.maxPhaseReached && isEnabled(i)); }
+function isUnlocked(i){
+  return isEnabled(i);
+}
 
 function headerHTML(opts){
   opts=opts||{};
