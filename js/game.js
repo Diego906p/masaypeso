@@ -65,7 +65,7 @@ function renderWelcome(){
   scr().innerHTML = `
     <div class="welcome-wrap">
       <div class="welcome-logo">⚖️</div>
-      <div class="welcome-title">PesoMás</div>
+      <div class="welcome-title">Kilos y Gramos</div>
       <div class="welcome-sub">Aprende a sumar y restar masas<br>¡jugando!</div>
       <div class="profile-card" id="prof-luanna">
         <div class="profile-emoji luanna">🦄</div>

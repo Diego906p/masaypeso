@@ -66,7 +66,7 @@ function renderShell(){
   document.body.innerHTML=`
     <div class="admin-shell">
       <div class="admin-header">
-        <span>⚖️ PesoMás — Panel de Papá</span>
+        <span>⚖️ Kilos y Gramos — Panel de papá</span>
         <div style="display:flex;gap:10px;align-items:center">
           <a href="index.html" class="modal-btn ghost" style="text-decoration:none;font-size:13px">‹ Juego</a>
           <button class="danger-btn" id="logout-btn" style="font-size:13px;padding:6px 12px">Salir</button>
