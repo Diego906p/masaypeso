@@ -107,18 +107,25 @@ function renderWelcome(){
           <span class="logo-plus">+</span>
           <span class="logo-book"></span>
           <span class="logo-star">★</span>
+          <span class="logo-face"></span>
           <span class="logo-minus">−</span>
         </div>
         <div class="title-row"><span>★</span><div class="welcome-title">Matemáticas</div><span>★</span></div>
         <div class="welcome-sub">Suma y resta con problemas reales jugando</div>
         <div class="welcome-prompt"><span></span><b>Elige tu modo para comenzar</b><span></span></div>
       <div class="profile-card" id="prof-luanna">
+        <span class="profile-spark sp-a" aria-hidden="true">✧</span>
+        <span class="profile-spark sp-b" aria-hidden="true">★</span>
+        <span class="profile-spark sp-c" aria-hidden="true">✦</span>
         <div class="profile-emoji luanna"><img src="${AVATARS.luanna}" alt="Luanna" onerror="this.replaceWith(document.createTextNode('Luanna'))"></div>
         <div class="profile-copy"><div class="profile-name">Luanna</div><div class="profile-desc">Jugar y practicar</div></div>
         <div class="profile-badge" aria-hidden="true">★</div>
         <div class="profile-arrow">›</div>
       </div>
       <div class="profile-card" id="prof-papa">
+        <span class="profile-spark sp-a" aria-hidden="true">✦</span>
+        <span class="profile-spark sp-b" aria-hidden="true">✧</span>
+        <span class="profile-spark sp-c" aria-hidden="true">★</span>
         <div class="profile-emoji papa"><img src="${AVATARS.papa}" alt="Papá" onerror="this.replaceWith(document.createTextNode('Papá'))"></div>
         <div class="profile-copy"><div class="profile-name">Papá</div><div class="profile-desc">Panel de control</div></div>
         <div class="profile-badge shield" aria-hidden="true">★</div>
