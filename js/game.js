@@ -203,7 +203,8 @@ ov.querySelector("#admin-cancel").onclick = ()=>ov.remove();
 const tryLogin = ()=>{
 if(inp.value === window.ADMIN_PIN){
 sessionStorage.setItem("pm_admin_auth", "ok");
-window.location.href = "admin.html";
+ov.remove();
+openAdminPanel();
 }else{
 ov.querySelector("#admin-err").textContent = "PIN incorrecto";
 }
@@ -214,6 +215,31 @@ ov.querySelector("#admin-ok").onclick = tryLogin;
 inp.onkeydown = (e)=>{
 if(e.key === "Enter") tryLogin();
 };
+}
+
+function cleanAppURL(){
+  try{
+    if(/\/(?:index|admin)\.html$/i.test(location.pathname)){
+      history.replaceState(null,"",location.pathname.replace(/(?:index|admin)\.html$/i,"") + location.search + location.hash);
+    }
+  }catch(e){}
+}
+
+function openAdminPanel(){
+  cleanAppURL();
+  setLoginMode(false);
+  setPlayMode(false);
+  sessionStorage.removeItem("pm_active");
+  const shell=document.querySelector(".phone-shell");
+  if(shell) shell.remove();
+  if(window.initAdmin){
+    window.initAdmin();
+    return;
+  }
+  const script=document.createElement("script");
+  script.src="js/admin.js?v=matematicas-20260721-ui11";
+  script.onload=()=>{ if(window.initAdmin) window.initAdmin(); };
+  document.body.appendChild(script);
 }
 
 // ── Reanudar ejercicio tras recargar la página (no cuenta como abandono) ──
@@ -772,6 +798,7 @@ function bindLifecycle(){
 
 document.addEventListener("DOMContentLoaded",()=>{
   if(!document.getElementById("screen")) return;
+  cleanAppURL();
   if(sessionStorage.getItem("pm_active")==="luanna") resumeSession();
   else renderWelcome();
 });

@@ -108,7 +108,7 @@ function renderShell(){
       <div class="admin-header">
         <span>➕ Matemáticas — Panel de papá</span>
         <div class="admin-top-actions">
-          <a href="index.html" class="admin-top-btn ghost">‹ Juego</a>
+          <a href="./" class="admin-top-btn ghost">‹ Juego</a>
           <button class="admin-top-btn danger" id="logout-btn">Salir</button>
         </div>
       </div>
@@ -120,7 +120,7 @@ function renderShell(){
       </div>
       <div class="admin-body" id="admin-body"></div>
     </div>`;
-  $("#logout-btn").onclick=()=>{ sessionStorage.removeItem("pm_admin_auth"); location.href="index.html"; };
+  $("#logout-btn").onclick=()=>{ sessionStorage.removeItem("pm_admin_auth"); location.href="./"; };
 }
 
 function bindTabs(){
@@ -399,4 +399,7 @@ function confirmReset(){
   };
 }
 
-document.addEventListener("DOMContentLoaded",initAdmin);
+window.initAdmin = initAdmin;
+if(!document.getElementById("screen")){
+  document.addEventListener("DOMContentLoaded",initAdmin);
+}
