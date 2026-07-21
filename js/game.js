@@ -330,7 +330,7 @@ function renderPlay(resumeEx){
       </div>
       <div class="bars-card" id="bars-card"></div>
       <div id="canvas-slot"></div>
-      <div class="feedback" id="feedback"></div>
+      <div class="feedback visible warn idle" id="feedback">Primero escribe o dibuja en la pizarra.</div>
       <div class="opts" id="opts"></div>
       <div class="content-end"></div>
     </div>

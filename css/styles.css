@@ -1449,6 +1449,12 @@ body.is-playing .toast{
   color:#7a5200;
   border-color:#efc75e;
 }
+.play-screen .feedback.idle{
+  background:linear-gradient(180deg,#fffaf0,#fff4d9);
+  color:#6d4c00;
+  border-color:#e9c96b;
+  justify-content:center;
+}
 .play-screen .feedback.ok{
   background:#e7fbf3;
   color:#04664f;
