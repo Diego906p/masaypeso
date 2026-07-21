@@ -1348,3 +1348,203 @@ body.is-playing .toast{
     bottom:auto;
   }
 }
+
+/* Ajuste de cuadrantes de pizarra solicitado desde captura:
+   1 lienzo util, 2 herramientas/zoom, 3 mensajes, luego opciones. */
+.play-screen #canvas-slot{
+  --canvas-fill-wrap:1;
+  --canvas-ratio:.56;
+  --canvas-max-h:999px;
+  flex:1 1 286px;
+  min-height:248px;
+}
+.play-screen .canvas-card{
+  min-height:0;
+}
+.play-screen .canvas-wrap{
+  flex:1 1 auto;
+  min-height:0;
+}
+.play-screen .canvas-wrap canvas{
+  min-height:0;
+}
+.play-screen .canvas-tools{
+  min-height:34px;
+  align-items:center;
+  gap:3px;
+  flex-wrap:nowrap;
+  overflow:hidden;
+}
+.play-screen .ctool,
+.play-screen .ccolor{
+  width:24px;
+  height:24px;
+  min-width:24px;
+  border-radius:9px;
+  font-size:12px;
+}
+.play-screen #pz-shape{
+  width:31px;
+  min-width:31px;
+  height:24px;
+  padding:0 4px;
+  gap:1px;
+}
+.play-screen .ctool-sep{display:none}
+.play-screen .csize{
+  width:42px;
+  max-width:42px;
+  min-width:42px;
+}
+.play-screen .pz-zoom{
+  position:static;
+  margin-left:auto;
+  flex-shrink:0;
+  height:26px;
+  padding:2px 4px;
+  gap:3px;
+}
+.play-screen .pz-zoom span{
+  min-width:27px;
+  font-size:9px;
+}
+.play-screen .pz-zb{
+  width:18px;
+  height:18px;
+  font-size:13px;
+  line-height:1;
+}
+.play-screen .feedback{
+  display:flex;
+  align-items:center;
+  width:100%;
+  min-height:38px;
+  margin:0;
+  padding:0 12px;
+  border:2px solid rgba(196,174,255,.65);
+  background:rgba(255,255,255,.62);
+  color:#5d5389;
+  font-size:12.5px;
+  font-weight:900;
+  line-height:1.25;
+  visibility:hidden;
+  box-shadow:none;
+  overflow:hidden;
+}
+.play-screen .feedback.visible{
+  position:static;
+  left:auto;
+  bottom:auto;
+  transform:none;
+  visibility:visible;
+  width:100%;
+  max-height:42px;
+  overflow:hidden;
+  padding:8px 12px;
+  border-radius:16px;
+  box-shadow:0 3px 10px rgba(65,72,170,.12);
+}
+.play-screen .feedback.warn{
+  background:#fff8dd;
+  color:#7a5200;
+  border-color:#efc75e;
+}
+.play-screen .feedback.ok{
+  background:#e7fbf3;
+  color:#04664f;
+  border-color:#66d3a8;
+}
+.play-screen .feedback.bad{
+  background:#fff0ee;
+  color:#b52836;
+  border-color:#f1a0a5;
+}
+.play-screen .opts{
+  gap:8px;
+}
+.play-screen .opt:nth-child(1){
+  border-color:#39c49a;
+  background:linear-gradient(180deg,#f0fff9,#e2f8ef);
+}
+.play-screen .opt:nth-child(1) .letter{
+  background:radial-gradient(circle at 30% 25%,#8ee7ca,#28b98d);
+}
+.play-screen .opt:nth-child(2){
+  border-color:#f0a1ad;
+  background:linear-gradient(180deg,#fff8f8,#ffecef);
+}
+.play-screen .opt:nth-child(2) .letter{
+  background:radial-gradient(circle at 30% 25%,#ffc3ca,#e76d81);
+}
+.play-screen .opt:nth-child(3){
+  border-color:#62a9ff;
+  background:linear-gradient(180deg,#f9fcff,#eaf6ff);
+}
+.play-screen .opt:nth-child(3) .letter{
+  background:radial-gradient(circle at 30% 25%,#83c5ff,#3290f3);
+}
+.play-screen .opt:nth-child(4){
+  border-color:#936cff;
+  background:linear-gradient(180deg,#fffaff,#f2ecff);
+}
+.play-screen .opt:nth-child(4) .letter{
+  background:radial-gradient(circle at 30% 25%,#b898ff,#7b5aef);
+}
+
+@media(max-width:480px){
+  .play-screen #canvas-slot{
+    --canvas-fill-wrap:1;
+    --canvas-ratio:.62;
+    --canvas-max-h:999px;
+    flex-basis:300px;
+    min-height:272px;
+  }
+  .play-screen .feedback{min-height:38px}
+  .play-screen .feedback.visible{max-height:42px}
+  .play-screen .opt{
+    min-height:49px;
+  }
+}
+
+@media(max-height:760px){
+  .play-screen #canvas-slot{
+    --canvas-fill-wrap:1;
+    --canvas-ratio:.40;
+    --canvas-max-h:999px;
+    flex-basis:170px;
+    min-height:150px;
+  }
+  .play-screen .feedback{
+    min-height:32px;
+    font-size:11.5px;
+  }
+  .play-screen .feedback.visible{
+    max-height:36px;
+    padding:6px 10px;
+  }
+  .play-screen .canvas-tools{min-height:28px}
+  .play-screen .ctool,
+  .play-screen .ccolor{
+    width:22px;
+    height:22px;
+    min-width:22px;
+  }
+  .play-screen #pz-shape{
+    width:29px;
+    min-width:29px;
+    height:22px;
+  }
+  .play-screen .csize{
+    width:34px;
+    max-width:34px;
+    min-width:34px;
+  }
+  .play-screen .pz-zoom{
+    height:23px;
+  }
+  .play-screen .pz-zb{
+    width:16px;
+    height:16px;
+    font-size:12px;
+  }
+}

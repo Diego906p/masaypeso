@@ -32,11 +32,6 @@ const Pizarra = (function(){
         <div class="canvas-wrap">
           <canvas id="pz-canvas"></canvas>
           <div class="pz-size-ind" id="pz-size-ind" title="Grosor del trazo"><span id="pz-size-dot"></span></div>
-          <div class="pz-zoom">
-            <button class="pz-zb" id="pz-zoomout" title="Alejar">➖</button>
-            <span id="pz-zoom-ind">100%</span>
-            <button class="pz-zb" id="pz-zoomin" title="Acercar">➕</button>
-          </div>
         </div>
         <div class="canvas-tools">
           <button class="ctool active" id="pz-pencil" title="Lápiz (B)">✏️</button>
@@ -59,6 +54,11 @@ const Pizarra = (function(){
           <span class="ctool-sep"></span>
           <input type="color" class="ccolor" id="pz-color" value="${COLORS_DEFAULT}" title="Color">
           <input type="range" class="csize" id="pz-size" min="2" max="22" value="4" title="Grosor">
+          <div class="pz-zoom">
+            <button class="pz-zb" id="pz-zoomout" title="Alejar">−</button>
+            <span id="pz-zoom-ind">100%</span>
+            <button class="pz-zb" id="pz-zoomin" title="Acercar">+</button>
+          </div>
         </div>
       </div>`;
 
@@ -145,7 +145,10 @@ const Pizarra = (function(){
     const styles = getComputedStyle(container || wrap);
     const ratio = parseFloat(styles.getPropertyValue("--canvas-ratio")) || 0.62;
     const maxH = parseFloat(styles.getPropertyValue("--canvas-max-h")) || Infinity;
-    cssH = Math.round(Math.min(cssW*ratio, maxH));
+    const fillWrap = parseFloat(styles.getPropertyValue("--canvas-fill-wrap")) || 0;
+    const wrapH = fillWrap ? wrap.getBoundingClientRect().height : 0;
+    const targetH = wrapH > 40 ? wrapH : cssW*ratio;
+    cssH = Math.round(Math.min(targetH, maxH));
     dpr = window.devicePixelRatio || 1;
     [canvas,layer].forEach(cv=>{ cv.width=Math.round(cssW*dpr); cv.height=Math.round(cssH*dpr); });
     canvas.style.height = cssH+"px";

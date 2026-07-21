@@ -305,6 +305,7 @@ function renderPlay(resumeEx){
   scr().className = "phone-screen play-screen";
   runtime.ex=resumeEx||generateExercise(P.currentPhase);
   runtime.answered=false;
+  runtime.wrongChoices=new Set();
   saveResume();
   const phaseName=PHASE_META[P.currentPhase]?PHASE_META[P.currentPhase].name:"Reto";
   scr().innerHTML=`
@@ -329,8 +330,8 @@ function renderPlay(resumeEx){
       </div>
       <div class="bars-card" id="bars-card"></div>
       <div id="canvas-slot"></div>
-      <div class="opts" id="opts"></div>
       <div class="feedback" id="feedback"></div>
+      <div class="opts" id="opts"></div>
       <div class="content-end"></div>
     </div>
     <div class="bottom-bar">
@@ -401,17 +402,32 @@ function applyAnswered(i){
 
 async function pick(i){
   if(runtime.answered) return;
+  if(runtime.wrongChoices && runtime.wrongChoices.has(i)) return;
   if(!Pizarra.hasContent()){
-    showToast("Primero escribe o dibuja en la pizarra.");
+    const fb=$("#feedback");
+    if(fb){ fb.className="feedback visible warn"; fb.innerHTML="Primero escribe o dibuja en la pizarra."; }
+    return;
+  }
+  const ex=runtime.ex;
+  const correct=i===ex.ci;
+  if(!correct){
+    if(runtime.wrongChoices) runtime.wrongChoices.add(i);
+    const btn=scr().querySelector(`.opt[data-i="${i}"]`);
+    if(btn){ btn.disabled=true; btn.classList.add("state-wrong"); }
+    const fb=$("#feedback");
+    if(fb){ fb.className="feedback visible bad"; fb.innerHTML="❌ Casi... revisa tu pizarra y prueba otra opción."; }
+    P.streak=0;
+    runtime.phaseWrong++;
+    try{Sound.wrong();}catch(e){}
+    await recordHistory("incorrecta",i);
+    await Store.saveProgress(P);
+    updateLiveSafe();
     return;
   }
   runtime.answered=true;
   runtime.chosen=i;
-  const ex=runtime.ex;
-  const correct=i===ex.ci;
   applyAnswered(i);
-  if(correct){ P.stars++; P.streak++; if(P.streak>P.bestStreak) P.bestStreak=P.streak; runtime.phaseCorrect++; try{Sound.correct();}catch(e){} }
-  else{ P.streak=0; runtime.phaseWrong++; try{Sound.wrong();}catch(e){} }
+  P.stars++; P.streak++; if(P.streak>P.bestStreak) P.bestStreak=P.streak; runtime.phaseCorrect++; try{Sound.correct();}catch(e){}
   saveResume();            // conserva la respuesta elegida si se recarga la página
   await recordHistory(correct?"correcta":"incorrecta",i);
   await Store.saveProgress(P);
