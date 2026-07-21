@@ -1,20 +1,21 @@
-# Kilos y Gramos ⚖️
+# Matemáticas
 
-App web educativa para practicar **suma y resta de masas (kg / g)** mediante el
-**modelo de barras**, dirigida a una niña (Luanna) con un **panel de control para
-Papá**. Ejercicios autogenerados, progreso persistente y seguimiento en vivo vía
-Firebase.
+App web educativa para practicar **sumas y restas** con problemas reales:
+kilogramos, gramos, soles y céntimos. Está dirigida a una niña de 8 a 10 años
+(Luanna) y mantiene un **panel de control para Papá**, ejercicios
+autogenerados, progreso persistente y seguimiento en vivo vía Firebase.
 
-> Antes "PesoMás". Renombrada a **Kilos y Gramos**.
+> Antes "PesoMás" / "Kilos y Gramos". Renombrada a **Matemáticas**.
 
 ---
 
 ## 1. Qué hace
 
 - **Juego (`index.html`)**: 10 fases de dificultad creciente, 10 niveles por fase.
-  En cada pregunta: enunciado con objetos y sus masas, modelo de barras visual,
+  En cada pregunta: enunciado con cantidades coherentes, modelo de barras visual,
   pizarra de dibujo para que la niña haga su procedimiento, y 4 opciones (A–D)
-  con feedback inmediato, pistas, racha y estrellas.
+  con feedback inmediato, racha y estrellas. No hay pistas: la pizarra debe tener
+  contenido antes de responder.
 - **Panel de Papá (`admin.html`)**: estadísticas, sesión en vivo, historial de
   respuestas (con captura de la pizarra), y **habilitar/deshabilitar fases**.
 
@@ -37,14 +38,14 @@ No requiere instalación. Abrir `index.html` con cualquier servidor estático
 ## 3. Estructura de archivos
 
 ```
-masaypeso/
+Matemáticas/
 ├─ index.html          # App de juego (firebase, exercises, sound, canvas, game)
 ├─ admin.html          # Panel de Papá (firebase, exercises, admin)
 ├─ guia.html           # Guía de uso interactiva (autocontenida)
 ├─ css/
 │  └─ styles.css       # TODOS los estilos (juego + admin + responsive)
 ├─ js/
-│  ├─ firebase-config.js  # Config Firebase, contraseña admin, refs FB
+│  ├─ firebase-config.js  # Config Firebase, PIN de acceso, refs FB
 │  ├─ exercises.js        # Escenarios, fases y generadores de ejercicios
 │  ├─ sound.js            # Sonidos (WebAudio): acierto/error/victoria
 │  ├─ canvas.js           # Pizarra avanzada (módulo Pizarra)
@@ -84,11 +85,10 @@ Si una operación de Firebase falla, todo cae a `localStorage`
 ## 5. Ejercicios (`exercises.js`)
 
 **Coherencia narrativa:** los problemas se construyen sobre **escenarios**
-(`SCENARIOS`) donde los objetos se relacionan con lógica — mercado/canasta,
-cocina/receta, mochila escolar, frutería. Cada generador toma objetos del
+(`SCENARIOS`) donde los objetos se relacionan con lógica: mercado/canasta,
+receta, mochila escolar, frutas y feria escolar. Cada generador toma objetos del
 **mismo** escenario, así nunca aparecen combinaciones sin sentido. El modelo de
-barras sirve para **componer** (sumar) y **descomponer** (restar), como en los
-PDFs de referencia.
+barras sirve para **componer** (sumar) y **descomponer** (restar).
 
 **Categorización estricta:** cada fase produce solo su tipo (Fase 2 = restas,
 Fase 6 = suma de 3, etc.).
@@ -104,28 +104,28 @@ Las 10 fases y su generador:
 
 | # | Fase | Generador | Tipo |
 |---|------|-----------|------|
-| 1 | Suma simple | `gen1` | a + b |
-| 2 | Resta simple | `gen2` | total − a |
-| 3 | Encontrar el total | `gen3` | suma con conversión kg↔g |
-| 4 | Objeto faltante | `gen4` | despejar oculto |
-| 5 | Problemas mixtos | `gen5` | suma o resta al azar |
-| 6 | Tres objetos | `gen6` | a + b + c |
-| 7 | Cuatro objetos | `gen7` | a + b + c + d |
-| 8 | Problemas inversos | `gen8` | relación multiplicativa (doble/triple/mitad) o aditiva ("X g más que") |
-| 9 | Problemas encadenados | `gen9` | componer y descomponer (agregar + retirar) |
-| 10 | Máxima complejidad | `gen10` | relaciones encadenadas tipo receta (×k y ÷2) |
+| 1 | Sumas cercanas | `gen1` | a + b |
+| 2 | Restas con sentido | `gen2` | total - a |
+| 3 | Kilos y gramos | `gen3` | suma con kg y g |
+| 4 | Parte faltante | `gen4` | despejar oculto |
+| 5 | Elige la operación | `gen5` | suma o resta según el enunciado |
+| 6 | Tres datos | `gen6` | a + b + c |
+| 7 | Soles y céntimos | `gen7` | compras, total o vuelto |
+| 8 | Problemas combinados | `gen8` | sumar y retirar |
+| 9 | Comparaciones | `gen9` | más/menos que, doble o mitad |
+| 10 | Reto final | `gen10` | varios pasos con masa o dinero |
 
 El nivel y estilo replican las fichas en `ejercicios/` (modelo de barras,
 relaciones tipo "el doble que", masas en kg + g, información extra).
 
 **Helpers útiles**: `fmt`/`fmtPlain` (formato "1 kg 250 g"), `roundStep`
 (redondeo a pasos limpios), `buildOptions` (distractores plausibles),
-`generateExercise(phaseIdx)` (punto de entrada; evita repetir las últimas 24
+`generateExercise(phaseIdx)` (punto de entrada; evita repetir las últimas 30
 combinaciones vía `localStorage`).
 
 ### Cómo agregar una fase
 1. Añadir entrada en `PHASE_META`.
-2. Crear un `genX()` que devuelva `{ qHTML, parts, totalValue, targetValue, hint, explain }`.
+2. Crear un `genX()` que devuelva `{ qHTML, parts, totalValue, targetValue, explain }`.
 3. Registrarlo en `GENERATORS` (orden = índice de fase).
 4. El resto (selector de fases, candado, admin) se ajusta solo a `PHASE_TOTAL`.
 
@@ -150,10 +150,10 @@ salir a propósito (volver a fases o cerrar sesión). La sesión activa se marca
 `pm_active`.
 
 `renderWelcome` → elegir perfil
-- **Luanna**: `loginLuanna` carga progreso + config → `renderPhaseSelect`
+- **Luanna**: modal de PIN → `loginLuanna` carga progreso + config → `renderPhaseSelect`
   → `enterPhase` → `renderPlay` (pregunta) → `pick` (responder)
   → `nextQuestion` → al terminar la fase `finishPhase` → `renderEndPhase`.
-- **Papá**: modal de contraseña → redirige a `admin.html`.
+- **Papá**: modal de PIN → redirige a `admin.html`.
 
 Calificación al cerrar fase: `pct ≥90 AD`, `≥75 A`, `≥50 B`, resto `C`.
 
@@ -164,8 +164,8 @@ Una fase sólo se puede jugar/continuar si está habilitada en `config/phases`
 
 ## 7. Panel de Papá (`admin.js`)
 
-- Acceso: contraseña `ADMIN_PASSWORD` en `firebase-config.js`
-  (actual: `papa2026`). El acceso se marca en `sessionStorage`.
+- Acceso: PIN en `ACCESS_PINS` dentro de `firebase-config.js`
+  (Luanna `1234`, Papá `1564`). El acceso se marca en `sessionStorage`.
 - Pestañas: **En vivo**, **Historial**, **Estadísticas**, **Fases**.
 - **Historial** y **Estadísticas** se filtran/agrupan **por día**
   (helpers `dayKey`, `dayLabel`, `distinctDays`). Estadísticas separa métricas
@@ -173,7 +173,7 @@ Una fase sólo se puede jugar/continuar si está habilitada en `config/phases`
 - **Fases:** botón de encendido/apagado (`.phase-power`) que escribe en
   `config/phases.enabled`; el juego lo respeta al recargar el selector.
 
-> ⚠️ La contraseña y la `apiKey` de Firebase están en el cliente (visibles para
+> ⚠️ Los PIN y la `apiKey` de Firebase están en el cliente (visibles para
 > cualquiera). Es un control "de juguete" para una niña, no seguridad real. Si
 > se necesita seguridad, mover a Firebase Auth + reglas de seguridad.
 
@@ -267,7 +267,7 @@ No hay paso de build ni dependencias npm. Editar archivos y recargar.
 ### Para escalar a futuro
 - **Más jugadores**: hoy todo está fijado a `luanna` (refs y rutas). Parametrizar
   el id de usuario en `FB.*` y el header del juego.
-- **Seguridad**: Firebase Auth + reglas; sacar contraseña del cliente.
+- **Seguridad**: Firebase Auth + reglas; sacar PIN del cliente.
 - **Más fases/tipos**: ver §5.
 - **i18n**: textos están embebidos en español dentro de los generadores y render.
 

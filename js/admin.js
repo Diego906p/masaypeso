@@ -21,7 +21,7 @@ const AdminStore = {
       hSnap.docs.forEach(d=>batch.delete(d.ref)); sSnap.docs.forEach(d=>batch.delete(d.ref));
       batch.delete(FB.progressRef()); batch.delete(FB.configRef()); await batch.commit();
     }catch(e){}
-    ["pm_progress","pm_config","pm_history","pm_sessions","pm_live","pesomas_recent_sigs"].forEach(k=>localStorage.removeItem(k));
+    ["pm_progress","pm_config","pm_history","pm_sessions","pm_live","pesomas_recent_sigs","matematicas_recent_sigs"].forEach(k=>localStorage.removeItem(k));
   }
 };
 
@@ -62,8 +62,8 @@ function renderGate(){
     <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f0f0ff">
       <div class="modal-box" style="max-width:340px;width:92%">
         <h3>🔐 Panel de Papá</h3>
-        <p>Ingresa la contraseña de administrador.</p>
-        <input type="password" id="gate-pass" class="modal-input" placeholder="Contraseña">
+        <p>Ingresa el PIN de administrador.</p>
+        <input type="password" id="gate-pass" class="modal-input" placeholder="PIN" inputmode="numeric" maxlength="4" autocomplete="off">
         <div class="modal-error" id="gate-err"></div>
         <div class="modal-actions"><button class="modal-btn primary" id="gate-ok">Entrar</button></div>
       </div>
@@ -71,8 +71,8 @@ function renderGate(){
   const inp=$("#gate-pass");
   inp.focus();
   const tryG=()=>{
-    if(inp.value===ADMIN_PASSWORD){ sessionStorage.setItem("pm_admin_auth","ok"); location.reload(); }
-    else{ $("#gate-err").textContent="Contraseña incorrecta"; }
+    if(inp.value===window.ADMIN_PIN){ sessionStorage.setItem("pm_admin_auth","ok"); location.reload(); }
+    else{ $("#gate-err").textContent="PIN incorrecto"; }
   };
   $("#gate-ok").onclick=tryG; inp.onkeydown=(e)=>{ if(e.key==="Enter") tryG(); };
 }
@@ -81,7 +81,7 @@ function renderShell(){
   document.body.innerHTML=`
     <div class="admin-shell">
       <div class="admin-header">
-        <span>⚖️ Kilos y Gramos — Panel de papá</span>
+        <span>➕ Matemáticas — Panel de papá</span>
         <div class="admin-top-actions">
           <a href="index.html" class="admin-top-btn ghost">‹ Juego</a>
           <button class="admin-top-btn danger" id="logout-btn">Salir</button>

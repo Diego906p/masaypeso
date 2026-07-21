@@ -1,3 +1,10 @@
+window.ACCESS_PINS = {
+  luanna: "1234",
+  papa: "1564"
+};
+window.LUANNA_PIN = window.ACCESS_PINS.luanna;
+window.ADMIN_PIN = window.ACCESS_PINS.papa;
+
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyB8GBusdNT97-7n2WdRvRodMX6nya6UUOU",
   authDomain: "pesomasa-2b47f.firebaseapp.com",
@@ -12,8 +19,6 @@ firebase.initializeApp(FIREBASE_CONFIG);
 
 const db = firebase.firestore();
 const rtdb = firebase.database();
-
-const ADMIN_PASSWORD = "papa2026";
 
 const FB = {
   now: () => Date.now(),

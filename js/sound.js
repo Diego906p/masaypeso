@@ -7,22 +7,14 @@ const Sound = (function(){
     correct: [
       "5-minutos-despues-bob-sponja.mp3",
       "bob-esponja-flauta.mp3",
-      "maaxima-potencia.mp3",
-      "bob-esponja-que-es-eso.mp3",
-      "al-dia-siguiente.mp3",
-      "risa-bob-2.mp3"
+      "al-dia-siguiente.mp3"
     ],
     wrong: [
       "uh-roblox-death-sound.mp3",
-      "pero-que-ven-mis-oidos-mano.mp3",
-      "cancion-triste-de-el-chavo-del-8.mp3",
-      "otro-gato-britto.mp3",
-      "se-me-chispoteo-chavo.mp3",
-      "que-es-eso-bob-esponja.mp3"
+      "se-me-chispoteo-chavo.mp3"
     ],
     victory: [
-      "michael-jackson-hee-hee.mp3",
-      "53b1bab6-a8c3-4a1a-82db-7110ce1c29ef_6KNDGWD.mp3"
+      "michael-jackson-hee-hee.mp3"
     ]
   };
 

@@ -142,7 +142,10 @@ const Pizarra = (function(){
     if(!canvas) return;
     const rect = wrap.getBoundingClientRect();
     cssW = Math.max(rect.width, 200);
-    cssH = Math.round(cssW*0.62);
+    const styles = getComputedStyle(container || wrap);
+    const ratio = parseFloat(styles.getPropertyValue("--canvas-ratio")) || 0.62;
+    const maxH = parseFloat(styles.getPropertyValue("--canvas-max-h")) || Infinity;
+    cssH = Math.round(Math.min(cssW*ratio, maxH));
     dpr = window.devicePixelRatio || 1;
     [canvas,layer].forEach(cv=>{ cv.width=Math.round(cssW*dpr); cv.height=Math.round(cssH*dpr); });
     canvas.style.height = cssH+"px";

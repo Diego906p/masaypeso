@@ -53,7 +53,7 @@ const AVATARS = {
 };
 
 let P=null, CFG=null, sessionId=null;
-const runtime = { ex:null, answered:false, hintOn:false, phaseCorrect:0, phaseWrong:0, phaseUnanswered:0 };
+const runtime = { ex:null, answered:false, phaseCorrect:0, phaseWrong:0, phaseUnanswered:0 };
 
 function isEnabled(i){
   return !CFG?.enabled || CFG.enabled[i] !== false;
@@ -65,13 +65,29 @@ function isUnlocked(i){
 
 function $(sel){ return document.querySelector(sel); }
 function scr(){ return document.getElementById("screen"); }
+function setPlayMode(on){ document.body.classList.toggle("is-playing", !!on); }
+function showToast(msg){
+  let t=document.getElementById("app-toast");
+  if(!t){
+    t=document.createElement("div");
+    t.id="app-toast";
+    t.className="toast";
+    document.body.appendChild(t);
+  }
+  t.textContent=msg;
+  t.classList.add("show");
+  clearTimeout(showToast._timer);
+  showToast._timer=setTimeout(()=>t.classList.remove("show"),1800);
+}
 
 function renderWelcome(){
+  setPlayMode(false);
+  scr().className = "phone-screen";
   scr().innerHTML = `
     <div class="welcome-wrap">
-      <div class="welcome-logo">⚖️</div>
-      <div class="welcome-title">Kilos y Gramos</div>
-      <div class="welcome-sub">Aprende a sumar y restar masas<br>¡jugando!</div>
+      <div class="welcome-logo">➕</div>
+      <div class="welcome-title">Matemáticas</div>
+      <div class="welcome-sub">Suma y resta con problemas reales<br>¡jugando!</div>
       <div class="profile-card" id="prof-luanna">
         <div class="profile-emoji luanna"><img src="${AVATARS.luanna}" alt="Luanna" onerror="this.replaceWith(document.createTextNode('🦄'))"></div>
         <div><div class="profile-name">Luanna</div><div class="profile-desc">Jugar y practicar</div></div>
@@ -84,10 +100,48 @@ function renderWelcome(){
       </div>
       <a class="info-btn" id="btn-info" href="guia.html" target="_blank" rel="noopener">ℹ️ Información</a>
     </div>`;
-  $("#prof-luanna").onclick = loginLuanna;
+  $("#prof-luanna").onclick = openLuannaModal;
   $("#prof-papa").onclick = openAdminModal;
   const info=$("#btn-info");
-  if(info) info.onclick=(e)=>{ e.preventDefault(); window.open("guia.html","guiaKilosGramos","width=960,height=900,scrollbars=yes,resizable=yes"); };
+  if(info) info.onclick=(e)=>{ e.preventDefault(); window.open("guia.html","guiaMatematicas","width=960,height=900,scrollbars=yes,resizable=yes"); };
+}
+
+function openLuannaModal(){
+const ov = document.createElement("div");
+ov.className = "modal-overlay";
+ov.innerHTML = `
+<div class="modal-box">
+  <h3>🔐 Acceso de Luanna</h3>
+  <p>Ingresa tu PIN para jugar.</p>
+  <input type="password" class="modal-input" id="luanna-pin" placeholder="PIN" inputmode="numeric" maxlength="4" autocomplete="off">
+  <div class="modal-error" id="luanna-err"></div>
+  <div class="modal-actions">
+    <button class="modal-btn ghost" id="luanna-cancel">Cancelar</button>
+    <button class="modal-btn primary" id="luanna-ok">Entrar</button>
+  </div>
+</div>`;
+
+document.body.appendChild(ov);
+
+const inp = ov.querySelector("#luanna-pin");
+inp.focus();
+
+ov.querySelector("#luanna-cancel").onclick = ()=>ov.remove();
+
+const tryLogin = ()=>{
+if(inp.value === window.LUANNA_PIN){
+ov.remove();
+loginLuanna();
+}else{
+ov.querySelector("#luanna-err").textContent = "PIN incorrecto";
+}
+};
+
+ov.querySelector("#luanna-ok").onclick = tryLogin;
+
+inp.onkeydown = (e)=>{
+if(e.key === "Enter") tryLogin();
+};
 }
 
 function openAdminModal(){
@@ -96,8 +150,8 @@ ov.className = "modal-overlay";
 ov.innerHTML = `
 <div class="modal-box">
   <h3>🔐 Acceso de papá</h3>
-  <p>Ingresa la contraseña para acceder al panel.</p>
-  <input type="password" class="modal-input" id="admin-pass" placeholder="Contraseña">
+  <p>Ingresa el PIN para acceder al panel.</p>
+  <input type="password" class="modal-input" id="admin-pass" placeholder="PIN" inputmode="numeric" maxlength="4" autocomplete="off">
   <div class="modal-error" id="admin-err"></div>
   <div class="modal-actions">
     <button class="modal-btn ghost" id="admin-cancel">Cancelar</button>
@@ -113,11 +167,11 @@ inp.focus();
 ov.querySelector("#admin-cancel").onclick = ()=>ov.remove();
 
 const tryLogin = ()=>{
-if(inp.value === ADMIN_PASSWORD){
+if(inp.value === window.ADMIN_PIN){
 sessionStorage.setItem("pm_admin_auth", "ok");
 window.location.href = "admin.html";
 }else{
-ov.querySelector("#admin-err").textContent = "Contraseña incorrecta";
+ov.querySelector("#admin-err").textContent = "PIN incorrecto";
 }
 };
 
@@ -133,6 +187,8 @@ function saveResume(){ try{ sessionStorage.setItem("pm_resume", JSON.stringify(r
 function clearResume(){ try{ sessionStorage.removeItem("pm_resume"); }catch(e){} }
 
 async function loginLuanna(){
+  setPlayMode(false);
+  scr().className = "phone-screen";
   sessionStorage.setItem("pm_active","luanna");
   scr().innerHTML = `<div class="lock-screen"><div class="lock-icon">⏳</div><div class="end-sub">Cargando tu progreso...</div></div>`;
   [P, CFG] = await Promise.all([Store.getProgress(), Store.getConfig()]);
@@ -146,6 +202,8 @@ async function loginLuanna(){
 }
 
 async function resumeSession(){
+  setPlayMode(false);
+  scr().className = "phone-screen";
   scr().innerHTML = `<div class="lock-screen"><div class="lock-icon">⏳</div><div class="end-sub">Cargando tu progreso...</div></div>`;
   [P, CFG] = await Promise.all([Store.getProgress(), Store.getConfig()]);
   if(!isEnabled(P.currentPhase)){
@@ -213,6 +271,8 @@ function bindHeader(){
 }
 
 function renderPhaseSelect(){
+  setPlayMode(false);
+  scr().className = "phone-screen";
   clearResume();
   const cards=PHASE_META.map((m,i)=>{
     const unlocked=isUnlocked(i);
@@ -240,13 +300,35 @@ function enterPhase(i){
 
 const MOTS=["¡Tú puedes! 💪","¡Vas genial! ✨","¡Sigue así! 🌟","¡Excelente! 🎉","¡Ánimo! 🚀"];
 function renderPlay(resumeEx){
+  setPlayMode(true);
+  scr().className = "phone-screen play-screen";
   runtime.ex=resumeEx||generateExercise(P.currentPhase);
   runtime.answered=false;
-  runtime.hintOn=false;
   saveResume();
+  const phaseName=PHASE_META[P.currentPhase]?PHASE_META[P.currentPhase].name:"Reto";
   scr().innerHTML=`
     ${headerHTML({level:P.currentLevel,qIndex:P.currentLevel-1,phaseNum:P.currentPhase+1,back:"phases",close:true})}
+    <div class="game-hero">
+      <div class="mascot-card">
+        <img src="${AVATARS.luanna}" alt="Luanna" onerror="this.replaceWith(document.createTextNode('⭐'))">
+      </div>
+      <div class="hero-bubble">
+        <span class="hero-kicker">Fase ${P.currentPhase+1} — ${phaseName}</span>
+        <strong>¡Sigue así!</strong>
+      </div>
+      <div class="reward-card">
+        <span>⭐</span>
+        <b>+10</b>
+      </div>
+    </div>
     <div class="content" id="content">
+      <div class="level-card">
+        <div class="level-star">${P.currentLevel}</div>
+        <div>
+          <div class="level-title">Problema ${P.currentLevel} de ${LEVELS_PER_PHASE}</div>
+          <div class="level-sub">${phaseName}</div>
+        </div>
+      </div>
       <div class="q-card">
         <div class="icon-wrap ${IC_BG[runtime.ex.parts[0].col]}">${icon(runtime.ex.parts[0].icon,28,runtime.ex.parts[0].col)}</div>
         <div class="q-text">${runtime.ex.qHTML}</div>
@@ -258,15 +340,14 @@ function renderPlay(resumeEx){
       <div class="content-end"></div>
     </div>
     <div class="bottom-bar">
-      <button class="pista-btn" id="pista-btn">💡 Pista</button>
-      <div class="center-mot"><span class="mot-lbl">${MOTS[Math.floor(Math.random()*MOTS.length)]}</span></div>
-      <button class="sig-btn" id="sig-btn">Siguiente ›</button>
+      <div class="nav-pill muted"><span>🏠</span><small>Inicio</small></div>
+      <div class="center-mot nav-pill main"><span>⭐</span><small>${MOTS[Math.floor(Math.random()*MOTS.length)]}</small></div>
+      <button class="sig-btn nav-pill" id="sig-btn"><span>➡</span><small>Siguiente</small></button>
     </div>`;
   bindHeader();
   renderBars(false);
   renderOpts();
   Pizarra.mount($("#canvas-slot"));
-  $("#pista-btn").onclick=toggleHint;
   $("#sig-btn").onclick=()=>{ if(runtime.answered) nextQuestion(); };
   updateLiveSafe();
 }
@@ -281,7 +362,7 @@ function renderBars(revealed){
       <div class="bar-ico ${IC_BG[p.col]}">${icon(p.icon,18,p.col)}</div>
       <div class="bar-lbl">${p.name}</div>
       ${show
-        ?`<div class="track"><div class="fill ${FILL_C[p.col]}" data-pct="${pct}" style="width:0%"></div></div><div class="bar-val ${BV_C[p.col]}">${fmtPlain(p.value)}</div>`
+        ?`<div class="track"><div class="fill ${FILL_C[p.col]}" data-pct="${pct}" style="width:0%"></div></div><div class="bar-val ${BV_C[p.col]}">${fmtPlain(p.value, ex.unit)}</div>`
         :`<div class="track-dashed"><span class="q-glyph">?</span></div><div class="bar-val ${BV_C[p.col]}">?</div>`}
     </div>`;
   }).join("");
@@ -291,7 +372,7 @@ function renderBars(revealed){
     <div class="bar-ico ${IC_BG.t}">${icon("box",18,"t")}</div>
     <div class="bar-lbl">Total</div>
     ${totalShow
-      ?`<div class="track"><div class="fill ${FILL_C.t}" data-pct="${totalPct}" style="width:0%"></div></div><div class="bar-val ${BV_C.t}">${fmtPlain(ex.totalValue)}</div>`
+      ?`<div class="track"><div class="fill ${FILL_C.t}" data-pct="${totalPct}" style="width:0%"></div></div><div class="bar-val ${BV_C.t}">${fmtPlain(ex.totalValue, ex.unit)}</div>`
       :`<div class="track-dashed"><span class="q-glyph">?</span></div><div class="bar-val ${BV_C.t}">?</div>`}
   </div>`;
   $("#bars-card").innerHTML=rows+totalRow;
@@ -306,7 +387,7 @@ function renderOpts(){
   $("#opts").innerHTML=runtime.ex.opts.map((v,i)=>`
     <button class="opt" data-i="${i}">
       <div class="letter">${letters[i]}</div>
-      <div class="opt-label">${fmtPlain(v)}</div>
+      <div class="opt-label">${fmtPlain(v, runtime.ex.unit)}</div>
     </button>`).join("");
   scr().querySelectorAll(".opt").forEach(b=>{ b.onclick=()=>pick(+b.dataset.i); });
 }
@@ -323,12 +404,15 @@ function applyAnswered(i){
   renderBars(true);
   const fb=$("#feedback");
   if(fb){ fb.className="feedback visible "+(correct?"ok":"bad"); fb.innerHTML=(correct?"✅ ¡Correcto! ":"❌ Casi... ")+ex.explain; }
-  const pb=$("#pista-btn"); if(pb){ pb.disabled=true; pb.classList.remove("active"); }
   const sb=$("#sig-btn"); if(sb) sb.classList.add("ready");
 }
 
 async function pick(i){
   if(runtime.answered) return;
+  if(!Pizarra.hasContent()){
+    showToast("Primero escribe o dibuja tu procedimiento en la pizarra.");
+    return;
+  }
   runtime.answered=true;
   runtime.chosen=i;
   const ex=runtime.ex;
@@ -340,14 +424,6 @@ async function pick(i){
   await recordHistory(correct?"correcta":"incorrecta",i);
   await Store.saveProgress(P);
   updateLiveSafe();
-}
-
-function toggleHint(){
-  if(runtime.answered) return;
-  runtime.hintOn=!runtime.hintOn;
-  const fb=$("#feedback");
-  if(runtime.hintOn){ $("#pista-btn").classList.add("active"); fb.className="feedback visible ok"; fb.innerHTML="💡 "+runtime.ex.hint; }
-  else{ $("#pista-btn").classList.remove("active"); fb.className="feedback"; }
 }
 
 async function nextQuestion(){
@@ -364,6 +440,8 @@ async function nextQuestion(){
 }
 
 async function finishPhase(){
+  setPlayMode(false);
+  scr().className = "phone-screen";
   const total=runtime.phaseCorrect+runtime.phaseWrong+runtime.phaseUnanswered;
   const pct=total?Math.round((runtime.phaseCorrect/total)*100):0;
   const grade=pct>=90?"AD":pct>=75?"A":pct>=50?"B":"C";
@@ -388,6 +466,7 @@ function confettiHTML(){
 }
 
 function renderEndPhase(s){
+  setPlayMode(false);
 
   const nextPhase = P.currentPhase + 1;
   const hasNext = nextPhase < PHASE_TOTAL;
