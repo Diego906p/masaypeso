@@ -17,6 +17,7 @@ const Pizarra = (function(){
   let drawing=false, panning=false, panStart=null;
   let selected=[], movingFrom=null, moving=false, marquee=null;
   let keyHandler=null, outsideHandler=null;
+  let notifyTimer=null, notifyLast=0;
 
   function buildDOM(host){
     container = host;
@@ -83,8 +84,8 @@ const Pizarra = (function(){
     c.querySelector("#pz-clear").onclick = clear;
     c.querySelector("#pz-zoomin").onclick  = ()=>zoom(1.25);
     c.querySelector("#pz-zoomout").onclick = ()=>zoom(0.8);
-    c.querySelector("#pz-color").oninput = (e)=>{ color=e.target.value; updateSizeDot(); if(tool==="eraser"||tool==="hand"||tool==="select") setTool("pencil"); };
-    c.querySelector("#pz-size").oninput  = (e)=>{ size=+e.target.value; updateSizeDot(true); };
+    c.querySelector("#pz-color").oninput = (e)=>{ color=e.target.value; updateSizeDot(); if(tool==="eraser"||tool==="hand"||tool==="select") setTool("pencil"); notifyChange(false); };
+    c.querySelector("#pz-size").oninput  = (e)=>{ size=+e.target.value; updateSizeDot(true); notifyChange(false); };
     updateSizeDot();
 
     const shapeBtn=c.querySelector("#pz-shape"), menu=c.querySelector("#pz-shape-menu");
@@ -106,13 +107,14 @@ const Pizarra = (function(){
   const TOOL_BTN={pencil:"#pz-pencil",select:"#pz-select",eraser:"#pz-eraser",shape:"#pz-shape",hand:"#pz-hand"};
   function setTool(t){
     // doble activación de la mano => restablecer vista
-    if(t==="hand" && tool==="hand"){ view={scale:1,ox:0,oy:0}; updateZoomInd(); redraw(); return; }
+    if(t==="hand" && tool==="hand"){ view={scale:1,ox:0,oy:0}; updateZoomInd(); redraw(); notifyChange(true); return; }
     if(t!=="select"){ selected=[]; marquee=null; }
     tool=t;
     Object.values(TOOL_BTN).forEach(sel=>{ const b=container.querySelector(sel); if(b) b.classList.remove("active"); });
     const btn=container.querySelector(TOOL_BTN[t]); if(btn) btn.classList.add("active");
     if(wrap) wrap.style.cursor = t==="hand"?"grab":(t==="select"?"move":"crosshair");
     redraw();
+    notifyChange(true);
   }
 
   function bindKeys(){
@@ -168,12 +170,22 @@ const Pizarra = (function(){
     }
   }
   function updateZoomInd(){ const i=container&&container.querySelector("#pz-zoom-ind"); if(i) i.textContent=Math.round(view.scale*100)+"%"; }
+  function notifyChange(force){
+    const now=Date.now();
+    if(!force && now-notifyLast<650){
+      clearTimeout(notifyTimer);
+      notifyTimer=setTimeout(()=>notifyChange(true),650);
+      return;
+    }
+    notifyLast=now;
+    try{ window.dispatchEvent(new CustomEvent("pizarra:change")); }catch(e){}
+  }
   function zoom(factor){
     const ns=Math.min(3, Math.max(0.4, view.scale*factor));
     const cx=cssW/2, cy=cssH/2;
     const wx=(cx-view.ox)/view.scale, wy=(cy-view.oy)/view.scale;
     view.scale=ns; view.ox=cx-wx*ns; view.oy=cy-wy*ns;
-    updateZoomInd(); redraw();
+    updateZoomInd(); redraw(); notifyChange(true);
   }
 
   function toWorld(e){ const r=canvas.getBoundingClientRect(); return { x:(e.clientX-r.left-view.ox)/view.scale, y:(e.clientY-r.top-view.oy)/view.scale }; }
@@ -215,12 +227,12 @@ const Pizarra = (function(){
       current = { tool, color, size, type, pts:[toWorld(e)] };
     });
     canvas.addEventListener("pointermove",(e)=>{
-      if(panning){ const s=screenRaw(e); view.ox=panStart.ox+(s.x-panStart.x); view.oy=panStart.oy+(s.y-panStart.y); redraw(); return; }
+      if(panning){ const s=screenRaw(e); view.ox=panStart.ox+(s.x-panStart.x); view.oy=panStart.oy+(s.y-panStart.y); redraw(); notifyChange(false); return; }
       if(tool==="select"){
         if(moving && selected.length && movingFrom){
           const w=toWorld(e); const dx=w.x-movingFrom.x, dy=w.y-movingFrom.y;
           selected.forEach(s=>{ s.pts=s.pts.map(p=>({x:p.x+dx,y:p.y+dy})); });
-          movingFrom=w; redraw();
+          movingFrom=w; redraw(); notifyChange(false);
         } else if(marquee){ const w=toWorld(e); marquee.x1=w.x; marquee.y1=w.y; redraw(); }
         return;
       }
@@ -229,22 +241,23 @@ const Pizarra = (function(){
       const p=toWorld(e);
       if(current.type==="free") current.pts.push(p); else current.pts[1]=p;
       redraw();
+      notifyChange(false);
     });
     function end(){
-      if(panning){ panning=false; wrap.style.cursor="grab"; return; }
+      if(panning){ panning=false; wrap.style.cursor="grab"; notifyChange(true); return; }
       if(tool==="select"){
         if(marquee){
           const moved=Math.abs(marquee.x1-marquee.x0)+Math.abs(marquee.y1-marquee.y0);
           if(moved < 6/view.scale){ const h=hitTest({x:marquee.x0,y:marquee.y0}); selected=h?[h]:[]; }
           else { const r=normRect(marquee); selected=strokes.filter(s=>rectsIntersect(bbox(s),r)); }
-          marquee=null; redraw();
+          marquee=null; redraw(); notifyChange(true);
         }
         moving=false; movingFrom=null; return;
       }
       if(!drawing) return;
       drawing=false;
       if(current && current.pts.length>1){ strokes.push(current); redoStack=[]; }
-      current=null; redraw();
+      current=null; redraw(); notifyChange(true);
     }
     canvas.addEventListener("pointerup",end);
     canvas.addEventListener("pointercancel",end);
@@ -324,11 +337,11 @@ const Pizarra = (function(){
   function deleteSelected(){
     if(!selected.length) return;
     strokes=strokes.filter(s=>!selected.includes(s));
-    selected=[]; redoStack=[]; redraw();
+    selected=[]; redoStack=[]; redraw(); notifyChange(true);
   }
-  function undo(){ if(strokes.length){ redoStack.push(strokes.pop()); selected=[]; redraw(); } }
-  function redo(){ if(redoStack.length){ strokes.push(redoStack.pop()); redraw(); } }
-  function clear(){ strokes=[]; redoStack=[]; selected=[]; marquee=null; redraw(); }
+  function undo(){ if(strokes.length){ redoStack.push(strokes.pop()); selected=[]; redraw(); notifyChange(true); } }
+  function redo(){ if(redoStack.length){ strokes.push(redoStack.pop()); redraw(); notifyChange(true); } }
+  function clear(){ strokes=[]; redoStack=[]; selected=[]; marquee=null; redraw(); notifyChange(true); }
   function hasContent(){ return strokes.length>0; }
 
   function exportPNG(maxW){

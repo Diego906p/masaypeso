@@ -148,6 +148,12 @@ function renderLive(body){
       if(!panel) return;
       if(!d.online){ panel.innerHTML=`<div class="live-row"><span class="tag abandoned">Sin conexión</span></div>`; return; }
       const dur=d.updatedAt?elapsed(Date.now()-d.updatedAt):"—";
+      if(d.screenHTML){
+        panel.className="live-panel live-watch-panel";
+        panel.innerHTML=renderLiveMirror(d,dur);
+        return;
+      }
+      panel.className="live-panel";
       panel.innerHTML=`
         <div class="live-row"><span>Estado</span><span class="tag ok">En línea</span></div>
         <div class="live-row"><span>Fase</span><b>${(PHASE_META[d.phase]||{name:"?"}).name} (${(d.phase||0)+1})</b></div>
@@ -162,6 +168,22 @@ function renderLive(body){
         </div>`;
     });
   }catch(e){ body.innerHTML=`<div class="live-panel"><div class="live-row"><span>Sin datos en tiempo real (modo local).</span></div></div>`; }
+}
+
+function renderLiveMirror(d,dur){
+  const w=Math.max(320,Math.min(520,Number(d.screenWidth)||390));
+  const h=Math.max(640,Math.min(980,Number(d.screenHeight)||760));
+  return `
+    <div class="live-watch-top">
+      <div><span class="tag ok">En linea</span></div>
+      <div><b>${(PHASE_META[d.phase]||{name:"?"}).name}</b> · Problema ${(d.qIndex||0)+1}/10</div>
+      <div>Actualizado hace ${dur}</div>
+    </div>
+    <div class="live-device-wrap">
+      <div class="live-device" style="--live-w:${w}px;--live-h:${h}px" inert>
+        ${d.screenHTML}
+      </div>
+    </div>`;
 }
 
 let _histList=[];

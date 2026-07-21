@@ -54,6 +54,8 @@ const AVATARS = {
 
 let P=null, CFG=null, sessionId=null;
 const runtime = { ex:null, answered:false, scored:false, firstResult:null, phaseCorrect:0, phaseWrong:0 };
+let liveTimer=null;
+let lifecycleBound=false;
 
 function isEnabled(i){
   return !CFG?.enabled || CFG.enabled[i] !== false;
@@ -370,7 +372,7 @@ function renderPlay(resumeEx,resumeState){
   Pizarra.mount($("#canvas-slot"));
   restoreAnswerState();
   $("#sig-btn").onclick=()=>{ if(runtime.answered) nextQuestion(); };
-  updateLiveSafe();
+  scheduleLiveUpdate(180);
 }
 
 function renderBars(revealed){
@@ -449,6 +451,7 @@ async function pick(i){
   if(!Pizarra.hasContent()){
     const fb=$("#feedback");
     if(fb){ fb.className="feedback visible warn"; fb.innerHTML="Primero escribe o dibuja en la pizarra."; }
+    scheduleLiveUpdate(80);
     return;
   }
   const ex=runtime.ex;
@@ -469,7 +472,7 @@ async function pick(i){
     try{Sound.wrong();}catch(e){}
     saveResume();
     await Store.saveProgress(P);
-    updateLiveSafe();
+    scheduleLiveUpdate(80);
     return;
   }
   runtime.answered=true;
@@ -487,7 +490,7 @@ async function pick(i){
   try{Sound.correct();}catch(e){}
   saveResume();            // conserva la respuesta elegida si se recarga la página
   await Store.saveProgress(P);
-  updateLiveSafe();
+  scheduleLiveUpdate(120);
 }
 
 async function nextQuestion(){
@@ -645,7 +648,66 @@ async function recordHistory(result,chosenIndex){
 function updateLiveSafe(){
   if(!P||!runtime.ex) return;
   const qText=runtime.ex.qHTML.replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/\s+/g," ").trim();
-  Store.setLive({online:true,phase:P.currentPhase,level:P.currentLevel,qIndex:P.currentQuestion,stars:P.stars,streak:P.streak,question:qText,updatedAt:Date.now()});
+  const screen=scr();
+  const rect=screen?screen.getBoundingClientRect():null;
+  Store.setLive({
+    online:true,
+    phase:P.currentPhase,
+    level:P.currentLevel,
+    qIndex:P.currentQuestion,
+    stars:P.stars,
+    streak:P.streak,
+    question:qText,
+    screenHTML:buildLiveScreenHTML(),
+    screenWidth:rect?Math.round(rect.width):390,
+    screenHeight:rect?Math.round(rect.height):760,
+    nextReady:!!document.querySelector("#sig-btn.ready"),
+    answered:runtime.answered,
+    scored:runtime.scored,
+    updatedAt:Date.now()
+  });
+}
+
+function scheduleLiveUpdate(delay){
+  clearTimeout(liveTimer);
+  liveTimer=setTimeout(updateLiveSafe, delay==null?120:delay);
+}
+
+function buildLiveScreenHTML(){
+  const source=scr();
+  if(!source||!source.classList.contains("play-screen")) return "";
+  const clone=source.cloneNode(true);
+  clone.classList.add("live-screen-copy");
+
+  const srcInputs=[...source.querySelectorAll("input,textarea,select")];
+  const dstInputs=[...clone.querySelectorAll("input,textarea,select")];
+  srcInputs.forEach((src,i)=>{
+    const dst=dstInputs[i];
+    if(!dst) return;
+    if(src.type==="checkbox"||src.type==="radio"){
+      if(src.checked) dst.setAttribute("checked","checked");
+      else dst.removeAttribute("checked");
+    }else{
+      dst.setAttribute("value",src.value);
+    }
+  });
+
+  const cloneCanvas=clone.querySelector("#pz-canvas");
+  if(cloneCanvas){
+    const img=document.createElement("img");
+    img.className="live-canvas-img";
+    img.alt="Pizarra de Luanna";
+    try{ img.src=Pizarra.exportPNG(760); }catch(e){ img.alt="Pizarra no disponible"; }
+    cloneCanvas.replaceWith(img);
+  }
+
+  clone.querySelectorAll("button,input,select,textarea,a").forEach(el=>{
+    el.setAttribute("tabindex","-1");
+    el.setAttribute("aria-disabled","true");
+    if(el.tagName==="A") el.removeAttribute("href");
+  });
+  clone.querySelectorAll("script").forEach(el=>el.remove());
+  return clone.outerHTML;
 }
 
 let flushing=false;
@@ -658,9 +720,12 @@ async function flushAbandonedIfPending(){
 }
 
 function bindLifecycle(){
+  if(lifecycleBound) return;
+  lifecycleBound=true;
   // Recargar la página NO cuenta como abandono: el ejercicio se reanuda (ver resumeSession).
   // El abandono solo se registra al salir a propósito (volver a fases o cerrar sesión).
   window.addEventListener("beforeunload",()=>{ try{ FB.liveRef().update({online:false}); }catch(e){} });
+  window.addEventListener("pizarra:change",()=>scheduleLiveUpdate(160));
 }
 
 document.addEventListener("DOMContentLoaded",()=>{
