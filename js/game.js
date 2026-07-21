@@ -679,6 +679,7 @@ function updateLiveSafe(){
   const qText=runtime.ex.qHTML.replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/\s+/g," ").trim();
   const screen=scr();
   const rect=screen?screen.getBoundingClientRect():null;
+  const canvasPNG=getLiveCanvasPNG(760);
   Store.setLive({
     online:true,
     phase:P.currentPhase,
@@ -688,6 +689,7 @@ function updateLiveSafe(){
     streak:P.streak,
     question:qText,
     screenHTML:buildLiveScreenHTML(),
+    canvasPNG,
     screenWidth:rect?Math.round(rect.width):390,
     screenHeight:rect?Math.round(rect.height):760,
     nextReady:!!document.querySelector("#sig-btn.ready"),
@@ -695,6 +697,10 @@ function updateLiveSafe(){
     scored:runtime.scored,
     updatedAt:Date.now()
   });
+}
+
+function getLiveCanvasPNG(maxW){
+  try{ return Pizarra.exportPNG(maxW||760); }catch(e){ return ""; }
 }
 
 function scheduleLiveUpdate(delay){
@@ -726,7 +732,7 @@ function buildLiveScreenHTML(){
     const img=document.createElement("img");
     img.className="live-canvas-img";
     img.alt="Pizarra de Luanna";
-    try{ img.src=Pizarra.exportPNG(760); }catch(e){ img.alt="Pizarra no disponible"; }
+    img.setAttribute("data-live-canvas","1");
     cloneCanvas.replaceWith(img);
   }
 

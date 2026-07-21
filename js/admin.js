@@ -25,7 +25,7 @@ const AdminStore = {
   }
 };
 
-let adminCFG=null, liveUnsub=null;
+let adminCFG=null, liveUnsub=null, liveScreenHTMLCache="";
 
 function $(s){ return document.querySelector(s); }
 function fmtTS(ts){ if(!ts) return "—"; const d=new Date(ts); return d.toLocaleDateString("es-PE")+" "+d.toLocaleTimeString("es-PE",{hour:"2-digit",minute:"2-digit"}); }
@@ -140,6 +140,7 @@ function showTab(tab){
 }
 
 function renderLive(body){
+  liveScreenHTMLCache="";
   body.innerHTML=`<div class="live-panel" id="live-panel"><div class="live-row"><span>Conectando...</span></div></div>`;
   try{
     liveUnsub=FB.liveRef().on("value",snap=>{
@@ -150,7 +151,7 @@ function renderLive(body){
       const dur=d.updatedAt?elapsed(Date.now()-d.updatedAt):"—";
       if(d.screenHTML){
         panel.className="live-panel live-watch-panel";
-        panel.innerHTML=renderLiveMirror(d,dur);
+        updateLiveMirror(panel,d,dur);
         return;
       }
       panel.className="live-panel";
@@ -170,7 +171,7 @@ function renderLive(body){
   }catch(e){ body.innerHTML=`<div class="live-panel"><div class="live-row"><span>Sin datos en tiempo real (modo local).</span></div></div>`; }
 }
 
-function renderLiveMirror(d,dur){
+function renderLiveMirrorShell(d,dur){
   const w=Math.max(320,Math.min(520,Number(d.screenWidth)||390));
   const h=Math.max(640,Math.min(980,Number(d.screenHeight)||760));
   return `
@@ -184,6 +185,34 @@ function renderLiveMirror(d,dur){
         ${d.screenHTML}
       </div>
     </div>`;
+}
+
+function updateLiveMirror(panel,d,dur){
+  const w=Math.max(320,Math.min(520,Number(d.screenWidth)||390));
+  const h=Math.max(640,Math.min(980,Number(d.screenHeight)||760));
+  let device=panel.querySelector(".live-device");
+  if(!device){
+    panel.innerHTML=renderLiveMirrorShell(d,dur);
+    device=panel.querySelector(".live-device");
+    liveScreenHTMLCache=d.screenHTML||"";
+  }
+  const top=panel.querySelector(".live-watch-top");
+  if(top){
+    const rows=top.children;
+    if(rows[1]) rows[1].innerHTML=`<b>${(PHASE_META[d.phase]||{name:"?"}).name}</b> · Problema ${(d.qIndex||0)+1}/10`;
+    if(rows[2]) rows[2].textContent=`Actualizado hace ${dur}`;
+  }
+  if(!device) return;
+  device.style.setProperty("--live-w",w+"px");
+  device.style.setProperty("--live-h",h+"px");
+  if(liveScreenHTMLCache!==(d.screenHTML||"")){
+    device.innerHTML=d.screenHTML||"";
+    liveScreenHTMLCache=d.screenHTML||"";
+  }
+  const img=device.querySelector(".live-canvas-img");
+  if(img&&d.canvasPNG&&img.getAttribute("src")!==d.canvasPNG){
+    img.setAttribute("src",d.canvasPNG);
+  }
 }
 
 let _histList=[];
