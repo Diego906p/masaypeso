@@ -68,6 +68,7 @@ function isUnlocked(i){
 function $(sel){ return document.querySelector(sel); }
 function scr(){ return document.getElementById("screen"); }
 function setPlayMode(on){ document.body.classList.toggle("is-playing", !!on); }
+function setLoginMode(on){ document.body.classList.toggle("is-login", !!on); }
 function showToast(msg){
   let t=document.getElementById("app-toast");
   if(!t){
@@ -83,24 +84,48 @@ function showToast(msg){
 }
 
 function renderWelcome(){
+  setLoginMode(true);
   setPlayMode(false);
   scr().className = "phone-screen";
   scr().innerHTML = `
     <div class="welcome-wrap">
-      <div class="welcome-logo">➕</div>
-      <div class="welcome-title">Matemáticas</div>
-      <div class="welcome-sub">Suma y resta con problemas reales<br>¡jugando!</div>
+      <div class="login-sky-deco" aria-hidden="true">
+        <span class="float-star s1">★</span>
+        <span class="float-star s2">✦</span>
+        <span class="float-star s3">★</span>
+        <span class="float-star s4">✦</span>
+        <span class="math-mark m1">+</span>
+        <span class="math-mark m2">=</span>
+        <span class="math-mark m3">8</span>
+        <span class="math-mark m4">−</span>
+        <span class="cloud c1"></span>
+        <span class="cloud c2"></span>
+        <span class="cloud c3"></span>
+      </div>
+      <div class="login-card">
+        <div class="welcome-logo" aria-hidden="true">
+          <span class="logo-plus">+</span>
+          <span class="logo-book"></span>
+          <span class="logo-star">★</span>
+          <span class="logo-minus">−</span>
+        </div>
+        <div class="title-row"><span>★</span><div class="welcome-title">Matemáticas</div><span>★</span></div>
+        <div class="welcome-sub">Suma y resta con problemas reales jugando</div>
+        <div class="welcome-prompt"><span></span><b>Elige tu modo para comenzar</b><span></span></div>
       <div class="profile-card" id="prof-luanna">
-        <div class="profile-emoji luanna"><img src="${AVATARS.luanna}" alt="Luanna" onerror="this.replaceWith(document.createTextNode('🦄'))"></div>
-        <div><div class="profile-name">Luanna</div><div class="profile-desc">Jugar y practicar</div></div>
+        <div class="profile-emoji luanna"><img src="${AVATARS.luanna}" alt="Luanna" onerror="this.replaceWith(document.createTextNode('Luanna'))"></div>
+        <div class="profile-copy"><div class="profile-name">Luanna</div><div class="profile-desc">Jugar y practicar</div></div>
+        <div class="profile-badge" aria-hidden="true">★</div>
         <div class="profile-arrow">›</div>
       </div>
       <div class="profile-card" id="prof-papa">
-        <div class="profile-emoji papa"><img src="${AVATARS.papa}" alt="Papá" onerror="this.replaceWith(document.createTextNode('🔐'))"></div>
-        <div><div class="profile-name">Papá</div><div class="profile-desc">Panel de control</div></div>
+        <div class="profile-emoji papa"><img src="${AVATARS.papa}" alt="Papá" onerror="this.replaceWith(document.createTextNode('Papá'))"></div>
+        <div class="profile-copy"><div class="profile-name">Papá</div><div class="profile-desc">Panel de control</div></div>
+        <div class="profile-badge shield" aria-hidden="true">★</div>
         <div class="profile-arrow">›</div>
       </div>
       <a class="info-btn" id="btn-info" href="guia.html" target="_blank" rel="noopener">ℹ️ Información</a>
+      </div>
     </div>`;
   $("#prof-luanna").onclick = openLuannaModal;
   $("#prof-papa").onclick = openAdminModal;
@@ -204,6 +229,7 @@ function saveResume(){
 function clearResume(){ try{ sessionStorage.removeItem("pm_resume"); }catch(e){} }
 
 async function loginLuanna(){
+  setLoginMode(false);
   setPlayMode(false);
   scr().className = "phone-screen";
   sessionStorage.setItem("pm_active","luanna");
@@ -219,6 +245,7 @@ async function loginLuanna(){
 }
 
 async function resumeSession(){
+  setLoginMode(false);
   setPlayMode(false);
   scr().className = "phone-screen";
   scr().innerHTML = `<div class="lock-screen"><div class="lock-icon">⏳</div><div class="end-sub">Cargando tu progreso...</div></div>`;
@@ -289,6 +316,7 @@ function bindHeader(){
 }
 
 function renderPhaseSelect(){
+  setLoginMode(false);
   setPlayMode(false);
   scr().className = "phone-screen";
   clearResume();
@@ -318,6 +346,7 @@ function enterPhase(i){
 
 const MOTS=["¡Tú puedes! 💪","¡Vas genial! ✨","¡Sigue así! 🌟","¡Excelente! 🎉","¡Ánimo! 🚀"];
 function renderPlay(resumeEx,resumeState){
+  setLoginMode(false);
   setPlayMode(true);
   scr().className = "phone-screen play-screen";
   runtime.ex=resumeEx||generateExercise(P.currentPhase);
