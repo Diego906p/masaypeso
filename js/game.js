@@ -53,7 +53,7 @@ const AVATARS = {
 };
 
 let P=null, CFG=null, sessionId=null;
-const runtime = { ex:null, answered:false, phaseCorrect:0, phaseWrong:0, phaseUnanswered:0 };
+const runtime = { ex:null, answered:false, scored:false, firstResult:null, phaseCorrect:0, phaseWrong:0 };
 
 function isEnabled(i){
   return !CFG?.enabled || CFG.enabled[i] !== false;
@@ -183,7 +183,22 @@ if(e.key === "Enter") tryLogin();
 }
 
 // ── Reanudar ejercicio tras recargar la página (no cuenta como abandono) ──
-function saveResume(){ try{ sessionStorage.setItem("pm_resume", JSON.stringify(runtime.ex)); }catch(e){} }
+function saveResume(){
+  try{
+    sessionStorage.setItem("pm_resume", JSON.stringify({
+      ex:runtime.ex,
+      answered:runtime.answered,
+      scored:runtime.scored,
+      firstResult:runtime.firstResult,
+      chosen:runtime.chosen,
+      wrongChoices:runtime.wrongChoices ? Array.from(runtime.wrongChoices) : [],
+      phaseCorrect:runtime.phaseCorrect,
+      phaseWrong:runtime.phaseWrong,
+      phase:P?.currentPhase,
+      level:P?.currentLevel
+    }));
+  }catch(e){}
+}
 function clearResume(){ try{ sessionStorage.removeItem("pm_resume"); }catch(e){} }
 
 async function loginLuanna(){
@@ -215,9 +230,9 @@ async function resumeSession(){
   const raw = sessionStorage.getItem("pm_resume");
   if(raw){
     try{
-      const ex = JSON.parse(raw);
-      runtime.phaseCorrect=0; runtime.phaseWrong=0; runtime.phaseUnanswered=0;
-      renderPlay(ex);
+      const saved = JSON.parse(raw);
+      const state = saved && saved.ex ? saved : {ex:saved};
+      renderPlay(state.ex,state);
       return;
     }catch(e){}
   }
@@ -295,17 +310,29 @@ function renderPhaseSelect(){
 
 function enterPhase(i){
   if(i!==P.currentPhase){ P.currentPhase=i; P.currentLevel=1; P.currentQuestion=0; Store.saveProgress(P); }
-  runtime.phaseCorrect=0; runtime.phaseWrong=0; runtime.phaseUnanswered=0;
+  runtime.phaseCorrect=0; runtime.phaseWrong=0;
   renderPlay();
 }
 
 const MOTS=["¡Tú puedes! 💪","¡Vas genial! ✨","¡Sigue así! 🌟","¡Excelente! 🎉","¡Ánimo! 🚀"];
-function renderPlay(resumeEx){
+function renderPlay(resumeEx,resumeState){
   setPlayMode(true);
   scr().className = "phone-screen play-screen";
   runtime.ex=resumeEx||generateExercise(P.currentPhase);
   runtime.answered=false;
+  runtime.scored=false;
+  runtime.firstResult=null;
   runtime.wrongChoices=new Set();
+  runtime.chosen=null;
+  if(resumeState){
+    runtime.phaseCorrect=Number(resumeState.phaseCorrect)||0;
+    runtime.phaseWrong=Number(resumeState.phaseWrong)||0;
+    runtime.answered=!!resumeState.answered;
+    runtime.scored=!!resumeState.scored;
+    runtime.firstResult=resumeState.firstResult||null;
+    runtime.chosen=resumeState.chosen==null?null:Number(resumeState.chosen);
+    runtime.wrongChoices=new Set((resumeState.wrongChoices||[]).map(Number));
+  }
   saveResume();
   const phaseName=PHASE_META[P.currentPhase]?PHASE_META[P.currentPhase].name:"Reto";
   scr().innerHTML=`
@@ -341,6 +368,7 @@ function renderPlay(resumeEx){
   renderBars(false);
   renderOpts();
   Pizarra.mount($("#canvas-slot"));
+  restoreAnswerState();
   $("#sig-btn").onclick=()=>{ if(runtime.answered) nextQuestion(); };
   updateLiveSafe();
 }
@@ -385,6 +413,21 @@ function renderOpts(){
   scr().querySelectorAll(".opt").forEach(b=>{ b.onclick=()=>pick(+b.dataset.i); });
 }
 
+function restoreAnswerState(){
+  if(runtime.answered && runtime.chosen!=null){
+    applyAnswered(runtime.chosen);
+    return;
+  }
+  if(runtime.wrongChoices && runtime.wrongChoices.size){
+    runtime.wrongChoices.forEach(i=>{
+      const btn=scr().querySelector(`.opt[data-i="${i}"]`);
+      if(btn){ btn.disabled=true; btn.classList.add("state-wrong"); }
+    });
+    const fb=$("#feedback");
+    if(fb){ fb.className="feedback visible bad"; fb.innerHTML="âŒ Casi... revisa tu pizarra y prueba otra opciÃ³n."; }
+  }
+}
+
 // Aplica la vista de "ya respondido" (sin volver a puntuar). Reutilizable al reanudar.
 function applyAnswered(i){
   const ex=runtime.ex;
@@ -416,10 +459,15 @@ async function pick(i){
     if(btn){ btn.disabled=true; btn.classList.add("state-wrong"); }
     const fb=$("#feedback");
     if(fb){ fb.className="feedback visible bad"; fb.innerHTML="❌ Casi... revisa tu pizarra y prueba otra opción."; }
-    P.streak=0;
-    runtime.phaseWrong++;
+    if(!runtime.scored){
+      runtime.scored=true;
+      runtime.firstResult="incorrecta";
+      P.streak=0;
+      runtime.phaseWrong++;
+      await recordHistory("incorrecta",i);
+    }
     try{Sound.wrong();}catch(e){}
-    await recordHistory("incorrecta",i);
+    saveResume();
     await Store.saveProgress(P);
     updateLiveSafe();
     return;
@@ -427,9 +475,17 @@ async function pick(i){
   runtime.answered=true;
   runtime.chosen=i;
   applyAnswered(i);
-  P.stars++; P.streak++; if(P.streak>P.bestStreak) P.bestStreak=P.streak; runtime.phaseCorrect++; try{Sound.correct();}catch(e){}
+  if(!runtime.scored){
+    runtime.scored=true;
+    runtime.firstResult="correcta";
+    P.stars++;
+    P.streak++;
+    if(P.streak>P.bestStreak) P.bestStreak=P.streak;
+    runtime.phaseCorrect++;
+    await recordHistory("correcta",i);
+  }
+  try{Sound.correct();}catch(e){}
   saveResume();            // conserva la respuesta elegida si se recarga la página
-  await recordHistory(correct?"correcta":"incorrecta",i);
   await Store.saveProgress(P);
   updateLiveSafe();
 }
@@ -450,7 +506,7 @@ async function nextQuestion(){
 async function finishPhase(){
   setPlayMode(false);
   scr().className = "phone-screen";
-  const total=runtime.phaseCorrect+runtime.phaseWrong+runtime.phaseUnanswered;
+  const total=runtime.phaseCorrect+runtime.phaseWrong;
   const pct=total?Math.round((runtime.phaseCorrect/total)*100):0;
   const grade=pct>=90?"AD":pct>=75?"A":pct>=50?"B":"C";
   P.phaseStars[P.currentPhase]=(P.phaseStars[P.currentPhase]||0)+runtime.phaseCorrect;
@@ -460,7 +516,7 @@ async function finishPhase(){
   clearResume();
   await Store.saveProgress(P);
   try{ Sound.victory(); }catch(e){}
-  renderEndPhase({correct:runtime.phaseCorrect,wrong:runtime.phaseWrong,unanswered:runtime.phaseUnanswered,pct,grade,stars:runtime.phaseCorrect});
+  renderEndPhase({correct:runtime.phaseCorrect,wrong:runtime.phaseWrong,pct,grade,stars:runtime.phaseCorrect});
 }
 
 function confettiHTML(){
@@ -507,11 +563,6 @@ function renderEndPhase(s){
         <div class="end-stat">
           <b>${s.wrong}</b>
           <span>Incorrectas</span>
-        </div>
-
-        <div class="end-stat">
-          <b>${s.unanswered}</b>
-          <span>Sin responder</span>
         </div>
       </div>
 
@@ -589,7 +640,6 @@ async function recordHistory(result,chosenIndex){
     question:qText, options:ex.opts, correctIndex:ex.ci, chosenIndex:chosenIndex==null?null:chosenIndex,
     result, canvas:Pizarra.hasContent()?Pizarra.exportPNG(480):null
   });
-  if(result==="abandonada") runtime.phaseUnanswered++;
 }
 
 function updateLiveSafe(){
@@ -602,10 +652,7 @@ let flushing=false;
 async function flushAbandonedIfPending(){
   if(flushing||!runtime.ex||runtime.answered) return;
   flushing=true;
-  P.streak=0;
-  await recordHistory("abandonada",null);
-  P.currentQuestion++;
-  if(P.currentQuestion>=QUESTIONS_PER_LEVEL){ P.currentQuestion=0; P.currentLevel++; if(P.currentLevel>LEVELS_PER_PHASE){ P.currentLevel=LEVELS_PER_PHASE; P.currentQuestion=9; } }
+  if(!runtime.scored) P.streak=0;
   await Store.saveProgress(P);
   runtime.answered=true; flushing=false;
 }

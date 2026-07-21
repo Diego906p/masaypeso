@@ -62,7 +62,7 @@ function bindDayFilter(id, initial, onChange){
 function resultLabel(result){
   if(result==="correcta") return "Correcta";
   if(result==="incorrecta") return "Error";
-  if(result==="abandonada") return "Sin resp.";
+  if(result==="abandonada") return "No completada";
   return result||"?";
 }
 
@@ -247,10 +247,9 @@ function paintStats(dayFilter){
   const all=dayFilter==="all";
   const hist=all?history:history.filter(h=>dayKey(h.ts)===dayFilter);
   const sess=all?sessions:sessions.filter(s=>dayKey(s.start)===dayFilter);
-  const total=hist.length;
   const correctas=hist.filter(h=>h.result==="correcta").length;
   const incorrectas=hist.filter(h=>h.result==="incorrecta").length;
-  const abandonadas=hist.filter(h=>h.result==="abandonada").length;
+  const total=correctas+incorrectas;
   const acc=total?Math.round((correctas/total)*100):0;
   const completedSessions=sess.filter(s=>s.end).length;
   const totalSessTime=sess.filter(s=>s.end).reduce((a,s)=>a+(s.end-s.start),0);
@@ -258,7 +257,7 @@ function paintStats(dayFilter){
   // Cards dependientes del día
   const dayCards=[
     ["✅ Correctas","Respuestas",correctas],["❌ Incorrectas","Respuestas",incorrectas],
-    ["⏭️ Abandonadas","Sin responder",abandonadas],["🎯 Precisión",`de ${total} ejercicios`,acc+"%"],
+    ["🎯 Precisión",`de ${total} ejercicios`,acc+"%"],
     ["📚 Sesiones","Completadas",completedSessions],["⏱️ Tiempo prom.","Por sesión",avgSess+" min"]
   ];
   // Cards acumulados (siempre globales)
