@@ -323,6 +323,19 @@ body{font-family:'Nunito',system-ui,sans-serif;background:linear-gradient(150deg
 .admin-filter{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
 .admin-filter label{font-weight:800;font-size:13px;color:#6C699A}
 .admin-filter select{font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:#1C1852;border:1.5px solid #D5D2E8;border-radius:12px;padding:8px 12px;background:#fff;cursor:pointer}
+.filter-label{font-weight:900;font-size:13px;color:#6C699A;white-space:nowrap}
+.day-chips{display:flex;gap:7px;overflow-x:auto;max-width:100%;padding:2px 2px 6px;scrollbar-width:none}
+.day-chips::-webkit-scrollbar{display:none}
+.day-chip{border:1.5px solid #D5D2E8;background:#fff;color:#6350E0;border-radius:999px;padding:8px 13px;font-family:'Nunito',sans-serif;font-size:12.5px;font-weight:900;white-space:nowrap;cursor:pointer;box-shadow:0 1px 5px rgba(80,60,200,.06)}
+.day-chip.active{background:linear-gradient(180deg,#7f63f1,#6250d6);border-color:#5e49cf;color:#fff;box-shadow:0 3px 10px rgba(99,80,224,.24)}
+.history-table-wrap{overflow-x:visible;width:100%}
+.history-table{table-layout:fixed}
+.history-table th:nth-child(1),.history-table td:nth-child(1){width:18%}
+.history-table th:nth-child(2),.history-table td:nth-child(2){width:20%}
+.history-table th:nth-child(3),.history-table td:nth-child(3){width:36%}
+.history-table th:nth-child(4),.history-table td:nth-child(4){width:26%}
+.hist-question{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-result{text-align:left}
 .day-group{margin-bottom:22px}
 .day-header{display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:14px;color:#1C1852;text-transform:capitalize;background:#EDEAFF;border-radius:12px;padding:9px 14px;margin-bottom:8px}
 .day-header span{font-size:11px;font-weight:700;color:#6350E0;text-transform:none}
@@ -1552,5 +1565,134 @@ body.is-playing .toast{
     width:16px;
     height:16px;
     font-size:12px;
+  }
+}
+
+/* Homogeneidad movil: juego, fases y panel de Papa comparten contenedor compacto. */
+@media(max-width:480px){
+  body{
+    padding:0;
+    align-items:stretch;
+  }
+  .phone-shell,
+  .admin-shell{
+    width:100%;
+    max-width:100%;
+    min-height:100dvh;
+    border-radius:0;
+    border-width:0;
+    box-shadow:none;
+  }
+  .phone-screen:not(.play-screen) .header{
+    min-height:54px;
+    padding:7px 10px;
+  }
+  .phone-screen:not(.play-screen) .avatar{
+    width:38px;
+    height:38px;
+    border-width:2px;
+  }
+  .phone-screen:not(.play-screen) .user-name{font-size:17px}
+  .phone-screen:not(.play-screen) .user-sub{font-size:10px}
+  .phone-screen:not(.play-screen) .badge{
+    padding:4px 7px;
+    border-radius:15px;
+  }
+  .phone-screen:not(.play-screen) .badge-text{font-size:11px}
+  .phone-screen:not(.play-screen) .hdr-back,
+  .phone-screen:not(.play-screen) .hdr-close{
+    width:28px;
+    height:28px;
+  }
+  .phase-grid{
+    padding:10px;
+    gap:8px;
+  }
+  .phase-card{
+    border-radius:14px;
+    padding:12px 10px;
+  }
+  .admin-header{
+    min-height:54px;
+    padding:8px 10px;
+    gap:8px;
+    flex-wrap:nowrap;
+  }
+  .admin-header span{
+    font-size:15px;
+    line-height:1.12;
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .admin-top-actions{
+    gap:6px;
+    flex-shrink:0;
+  }
+  .admin-top-btn{
+    height:30px;
+    padding:0 10px;
+    border-radius:10px;
+    font-size:11.5px;
+  }
+  .admin-tabs{
+    padding:6px 8px 0;
+    gap:2px;
+  }
+  .tab-btn{
+    padding:9px 10px;
+    font-size:12px;
+  }
+  .admin-body{
+    padding:10px 9px 18px;
+  }
+  .admin-filter{
+    align-items:flex-start;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .filter-label{
+    width:100%;
+    font-size:12px;
+  }
+  .day-chips{
+    width:100%;
+    padding-bottom:4px;
+  }
+  .day-chip{
+    padding:7px 11px;
+    font-size:12px;
+  }
+  .day-header{
+    padding:8px 10px;
+    font-size:13px;
+  }
+  .day-header span{
+    font-size:10.5px;
+  }
+  .admin-table{
+    font-size:11px;
+  }
+  .admin-table th,
+  .admin-table td{
+    padding:8px 5px;
+  }
+  .admin-table th{
+    font-size:9.5px;
+    letter-spacing:0;
+  }
+  .history-table th:nth-child(1),.history-table td:nth-child(1){width:17%}
+  .history-table th:nth-child(2),.history-table td:nth-child(2){width:18%}
+  .history-table th:nth-child(3),.history-table td:nth-child(3){width:34%}
+  .history-table th:nth-child(4),.history-table td:nth-child(4){width:31%}
+  .history-table .tag{
+    padding:3px 5px;
+    font-size:9.5px;
+    border-radius:9px;
+    max-width:100%;
+  }
+  .hist-result{
+    white-space:nowrap;
   }
 }

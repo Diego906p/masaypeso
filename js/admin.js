@@ -40,6 +40,31 @@ function dayLabel(key){
   return date.toLocaleDateString("es-PE",{weekday:"long",day:"numeric",month:"long"});
 }
 function distinctDays(items, field){ return [...new Set(items.map(i=>dayKey(i[field])))].sort().reverse(); }
+function dayFilterHTML(id, days, initial){
+  const items=[{value:"all",label:"Todos"}].concat(days.map(k=>({value:k,label:dayLabel(k)})));
+  return `<div class="admin-filter">
+    <span class="filter-label">📅 Día</span>
+    <div class="day-chips" id="${id}">
+      ${items.map(it=>`<button class="day-chip ${it.value===initial?"active":""}" data-value="${it.value}">${it.label}</button>`).join("")}
+    </div>
+  </div>`;
+}
+function bindDayFilter(id, initial, onChange){
+  const wrap=document.getElementById(id);
+  if(!wrap) return;
+  const setActive=(value)=>{
+    wrap.querySelectorAll(".day-chip").forEach(b=>b.classList.toggle("active",b.dataset.value===value));
+    onChange(value);
+  };
+  wrap.querySelectorAll(".day-chip").forEach(b=>{ b.onclick=()=>setActive(b.dataset.value); });
+  setActive(initial);
+}
+function resultLabel(result){
+  if(result==="correcta") return "Correcta";
+  if(result==="incorrecta") return "Error";
+  if(result==="abandonada") return "Sin resp.";
+  return result||"?";
+}
 
 async function initAdmin(){
   const saved=sessionStorage.getItem("pm_admin_auth");
@@ -145,17 +170,11 @@ async function renderHistory(body){
   _histList=await AdminStore.getHistory(500);
   if(!_histList.length){ body.innerHTML=`<div style="padding:20px;text-align:center;color:#888">Sin historial aún.</div>`; return; }
   const days=distinctDays(_histList,"ts");
-  const optHTML=`<option value="all">Todos los días</option>`+days.map(k=>`<option value="${k}">${dayLabel(k)}</option>`).join("");
+  const initial=days[0]||"all";
   body.innerHTML=`
-    <div class="admin-filter">
-      <label>📅 Día:</label>
-      <select id="hist-day">${optHTML}</select>
-    </div>
+    ${dayFilterHTML("hist-day",days,initial)}
     <div id="hist-content"></div>`;
-  const sel=$("#hist-day");
-  sel.value=days[0]; // por defecto, día más reciente
-  sel.onchange=()=>paintHistory(sel.value);
-  paintHistory(sel.value);
+  bindDayFilter("hist-day",initial,paintHistory);
 }
 function paintHistory(dayFilter){
   const cont=$("#hist-content");
@@ -168,12 +187,12 @@ function paintHistory(dayFilter){
     const rows=groups[k].map(h=>`<tr style="cursor:pointer" data-idx="${_histList.indexOf(h)}">
       <td>${fmtTS(h.ts).split(" ")[1]||""}</td>
       <td>F${(h.phase||0)+1} · N${h.level||1}</td>
-      <td style="max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(h.question||"").substring(0,60)}</td>
-      <td><span class="tag ${h.result==="correcta"?"ok":h.result==="abandonada"?"abandoned":"bad"}">${h.result||"?"}</span></td>
+      <td class="hist-question">${(h.question||"").substring(0,48)}</td>
+      <td class="hist-result"><span class="tag ${h.result==="correcta"?"ok":h.result==="abandonada"?"abandoned":"bad"}">${resultLabel(h.result)}</span></td>
     </tr>`).join("");
     return `<div class="day-group">
       <div class="day-header">${dayLabel(k)} <span>${groups[k].length} ejercicios</span></div>
-      <div style="overflow-x:auto"><table class="admin-table">
+      <div class="history-table-wrap"><table class="admin-table history-table">
         <thead><tr><th>Hora</th><th>Fase·Niv</th><th>Pregunta</th><th>Resultado</th></tr></thead>
         <tbody>${rows}</tbody>
       </table></div>
@@ -218,16 +237,10 @@ async function renderStats(body){
   if(!progress){ body.innerHTML=`<div style="padding:20px;text-align:center;color:#888">Sin datos aún.</div>`; return; }
   _statsData={progress,history,sessions};
   const days=distinctDays(history,"ts");
-  const optHTML=`<option value="all">Todos los días</option>`+days.map(k=>`<option value="${k}">${dayLabel(k)}</option>`).join("");
   body.innerHTML=`
-    <div class="admin-filter">
-      <label>📅 Día:</label>
-      <select id="stats-day">${optHTML}</select>
-    </div>
+    ${dayFilterHTML("stats-day",days,"all")}
     <div id="stats-content"></div>`;
-  const sel=$("#stats-day");
-  sel.onchange=()=>paintStats(sel.value);
-  paintStats("all");
+  bindDayFilter("stats-day","all",paintStats);
 }
 function paintStats(dayFilter){
   const {progress,history,sessions}=_statsData;
