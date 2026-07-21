@@ -235,16 +235,17 @@ function headerHTML(opts){
   let prog="";
   if(opts.showProgress!==false){
     const qi=opts.qIndex||0;
+    const progressLabel = opts.progressLabel || `Fase ${phaseNum} · Nivel ${opts.level||1}`;
     const segs=Array.from({length:10},(_,i)=>`<div class="seg ${i<qi?"on":"off"}"></div>`).join("");
     prog=`<div class="progress-row">
-      <div class="nivel-tag">Fase ${phaseNum} · Nivel ${opts.level||1}</div>
+      <div class="nivel-tag">${progressLabel}</div>
       <div class="segments">${segs}</div>
       <div class="pct-text">${Math.round((qi/10)*100)}%</div>
       <div class="q-pill">${qi+1}/10</div>
     </div>`;
   }
   const closeBtn = opts.close
-    ? `<button class="hdr-close" id="hdr-close" title="Cerrar sesión (elegir usuario)">⏻</button>` : "";
+    ? `<button class="hdr-close" id="hdr-close" title="Cerrar sesión (elegir usuario)">×</button>` : "";
   const backBtn = opts.back
     ? `<button class="hdr-back" id="hdr-back" data-target="${opts.back}" title="${opts.back==='welcome'?'Volver a elegir usuario':'Volver a las fases'}">‹</button>` : "";
   return `<div class="header">
@@ -307,7 +308,7 @@ function renderPlay(resumeEx){
   saveResume();
   const phaseName=PHASE_META[P.currentPhase]?PHASE_META[P.currentPhase].name:"Reto";
   scr().innerHTML=`
-    ${headerHTML({level:P.currentLevel,qIndex:P.currentLevel-1,phaseNum:P.currentPhase+1,back:"phases",close:true})}
+    ${headerHTML({progressLabel:`Problema ${P.currentLevel} de ${LEVELS_PER_PHASE}`,qIndex:P.currentLevel-1,phaseNum:P.currentPhase+1,back:"phases",close:true})}
     <div class="game-hero">
       <div class="mascot-card">
         <img src="${AVATARS.luanna}" alt="Luanna" onerror="this.replaceWith(document.createTextNode('⭐'))">
@@ -322,13 +323,6 @@ function renderPlay(resumeEx){
       </div>
     </div>
     <div class="content" id="content">
-      <div class="level-card">
-        <div class="level-star">${P.currentLevel}</div>
-        <div>
-          <div class="level-title">Problema ${P.currentLevel} de ${LEVELS_PER_PHASE}</div>
-          <div class="level-sub">${phaseName}</div>
-        </div>
-      </div>
       <div class="q-card">
         <div class="icon-wrap ${IC_BG[runtime.ex.parts[0].col]}">${icon(runtime.ex.parts[0].icon,28,runtime.ex.parts[0].col)}</div>
         <div class="q-text">${runtime.ex.qHTML}</div>
@@ -340,9 +334,7 @@ function renderPlay(resumeEx){
       <div class="content-end"></div>
     </div>
     <div class="bottom-bar">
-      <div class="nav-pill muted"><span>🏠</span><small>Inicio</small></div>
-      <div class="center-mot nav-pill main"><span>⭐</span><small>${MOTS[Math.floor(Math.random()*MOTS.length)]}</small></div>
-      <button class="sig-btn nav-pill" id="sig-btn"><span>➡</span><small>Siguiente</small></button>
+      <button class="sig-btn next-only" id="sig-btn">Siguiente</button>
     </div>`;
   bindHeader();
   renderBars(false);
@@ -410,7 +402,7 @@ function applyAnswered(i){
 async function pick(i){
   if(runtime.answered) return;
   if(!Pizarra.hasContent()){
-    showToast("Primero escribe o dibuja tu procedimiento en la pizarra.");
+    showToast("Primero escribe o dibuja en la pizarra.");
     return;
   }
   runtime.answered=true;
@@ -471,6 +463,12 @@ function renderEndPhase(s){
   const nextPhase = P.currentPhase + 1;
   const hasNext = nextPhase < PHASE_TOTAL;
   const canContinue = hasNext && isEnabled(nextPhase);
+  const phaseName = PHASE_META[P.currentPhase].name;
+  const completionMsg = s.pct >= 90
+    ? `Dominaste esta fase: ${phaseName}.`
+    : s.pct >= 75
+      ? `Buen avance en esta fase. Puedes seguir reforzando ${phaseName.toLowerCase()}.`
+      : `Conviene practicar un poco más esta habilidad antes de avanzar.`;
 
   scr().innerHTML=`
     <div class="end-screen">
@@ -480,7 +478,7 @@ function renderEndPhase(s){
 
       <div class="end-title">¡Fase completada!</div>
 
-      <div class="end-sub">${PHASE_META[P.currentPhase].name}</div>
+      <div class="end-sub">${completionMsg}</div>
 
       <div class="score-pill">⭐ +${s.stars} estrellas</div>
 
